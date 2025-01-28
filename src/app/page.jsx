@@ -5,6 +5,8 @@ import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from "next-auth/react";
+import { useState } from "react";
+import RegisterModal from "./register/page";
 
 const handleProvider = async(provider) =>{
   await signIn(provider, {
@@ -13,6 +15,14 @@ const handleProvider = async(provider) =>{
 };
 
 export default function Home() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const openModal=()=>{
+    setIsModalOpen(true);
+  }
+  const closeModal=()=>{
+    setIsModalOpen(false);
+  }
+
   return (
     <div className={styles.mainContainer}>
       <div className={styles.container}>
@@ -32,7 +42,7 @@ export default function Home() {
           <div className={styles.divider}>
           <span>or</span>
           </div>
-          <div className={styles.signupButton}><Link href="/register">Create account</Link></div>
+          <div className={styles.signupButton}><button onClick={openModal}>Create account</button></div>
           <div className={styles.agreement}>
           By signing up, you agree to the <span><Link href= "#">Terms of Service</Link></span> and <span><Link href= "#">Privacy Policy</Link></span>, including <span><Link href= "#">Cookie Use.</Link></span>
           </div>
@@ -61,6 +71,7 @@ export default function Home() {
       <Link href="#">Settings </Link>
       <Link href="#">© 2025 X Corp.</Link>
     </footer>
+    {isModalOpen && <RegisterModal closeModal={closeModal}/>}
     </div>
   );
 }
