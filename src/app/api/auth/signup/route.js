@@ -8,7 +8,7 @@ import User from "@/models/user";
 export async function POST(req) {
   await connectToDatabase();
 
-  const { name, email, dateOfBirth, password, confirmPassword } =
+  const { name, email, dateOfBirth, password} =
     await req.json();
   const isValidEmail = (email) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -16,12 +16,6 @@ export async function POST(req) {
   };
   if (!isValidEmail) {
     return NextResponse.json({ message: "email is invalid" }, { status: 400 });
-  }
-  if (password !== confirmPassword) {
-    return NextResponse.json(
-      { message: "Passwords don't match" },
-      { status: 400 }
-    );
   }
   if (password.length < 6) {
     return NextResponse.json(
