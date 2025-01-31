@@ -185,7 +185,7 @@ export default function LoginModal() {
 
                 <button
                   className={ownstyles.forgetButton}
-                  onClick={() => handleProvider("github")}
+                  onClick={()=>router.push("/forgetPassword")}
                 >
                   Forgot Password
                 </button>
