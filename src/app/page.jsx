@@ -5,23 +5,14 @@ import Link from "next/link";
 import { FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
-import RegisterModal from "./register/page";
 
 const handleProvider = async(provider) =>{
   await signIn(provider, {
-    callbackUrl: "/",
+    callbackUrl: "/home",
   });
 };
 
 export default function Home() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const openModal=()=>{
-    setIsModalOpen(true);
-  }
-  const closeModal=()=>{
-    setIsModalOpen(false);
-  }
 
   return (
     <div className={styles.mainContainer}>
@@ -42,12 +33,12 @@ export default function Home() {
           <div className={styles.divider}>
           <span>or</span>
           </div>
-          <div className={styles.signupButton}><button onClick={openModal}>Create account</button></div>
+          <Link href="/register"><div className={styles.signupButton}>Create account</div></Link>
           <div className={styles.agreement}>
           By signing up, you agree to the <span><Link href= "#">Terms of Service</Link></span> and <span><Link href= "#">Privacy Policy</Link></span>, including <span><Link href= "#">Cookie Use.</Link></span>
           </div>
           <div className={styles.alreadyAcc}>Already have an account?</div>
-          <div className={styles.signinButton}><Link href="/login">Sign in</Link></div>
+          <Link href="/login"><div className={styles.signinButton}>Sign in</div></Link>
       </div>
       </div>
     </div>
@@ -71,7 +62,6 @@ export default function Home() {
       <Link href="#">Settings </Link>
       <Link href="#">© 2025 X Corp.</Link>
     </footer>
-    {isModalOpen && <RegisterModal closeModal={closeModal}/>}
     </div>
   );
 }

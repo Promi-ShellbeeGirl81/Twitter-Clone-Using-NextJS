@@ -22,27 +22,44 @@ const handler = NextAuth({
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        identifier: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         try {
           await connectToDatabase();
-          const user = await User.findOne({ email: credentials.email });
+          //console.log("cre" + credentials);
+          const user = await User.findOne({
+            $or: [
+              { email: credentials.identifier },
+              { name: credentials.identifier },
+            ],
+          });
+          console.log("user" + user);
           if (!user) {
-            throw new Error("No user found with provided email");
+            console.log("No user found with this identifier.");
+            return null;
           }
           const isValidPassword = await bcrypt.compare(
             credentials.password,
             user.password
           );
+          console.log(
+            "Stored password hash:",
+            user.password,
+            credentials.password
+          );
+
           if (!isValidPassword) {
-            throw new Error("Invalid Password!");
+            console.log("Pass no match");
+            return null;
           }
           return user;
         } catch (error) {
           console.log(error);
-          return null;
+          {
+            return null;
+          }
         }
       },
     }),
@@ -59,6 +76,18 @@ const handler = NextAuth({
             email: profile.email,
             name: profile.name || profile.login,
             image: profile.image,
+          });
+        }
+      }
+      if (account?.provider === "google") {
+        console.log(`Google login: ${profile.email}, ${profile.name}`);
+        const existingUser = await User.findOne({ email: profile.email });
+        if (!existingUser) {
+          await User.create({
+            id: profile.sub, 
+            email: profile.email,
+            name: profile.name || "Google User",
+            image: profile.picture,
           });
         }
       }
@@ -86,4 +115,4 @@ const handler = NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET,
 });
-export {handler as GET, handler as POST};
+export { handler as GET, handler as POST };

@@ -1,0 +1,76 @@
+.nextButton{
+    background-color: white;
+    color: rgb(64, 64, 54);
+    border-radius: 30px;
+    padding: 10px 20px;
+    text-align: center;
+    width: 100%;
+    margin: 10px;
+    font-weight: 600;
+    padding-left: 40px;
+    padding-top: 12px;
+    margin-left: 0px;
+  }
+
+  .googleButton, .githubButton{
+    background-color: white;
+    color: rgb(64, 64, 54);
+    border-radius: 30px;
+    padding: 10px 20px;
+    text-align: center;
+    width: 100%;
+    margin: 10px;
+    margin-top: 30px;
+    font-weight: 600;
+    display: flex;
+    gap: 10px;
+    padding-left: 110px;
+    padding-top: 12px;
+    margin-left: 0px;
+  }
+
+  .githubButton{
+    margin-top: 15px;
+  }
+
+  .forgetButton{
+    background-color:transparent;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    border-radius: 30px;
+    padding: 10px 20px;
+    text-align: center;
+    width: 100%;
+    margin: 10px;
+    font-weight: 600;
+    padding-left: 40px;
+    padding-top: 12px;
+    margin-bottom: 40px;
+    margin-left: 0px;
+  }
+
+  .divider{
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 10px;
+    margin-left: 0px;
+  }
+  .divider::before, .divider::after{
+    content: '';
+    flex: none;
+    width: 48%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.438);
+  }
+  .divider span{
+    color: white;
+    margin: 0 10px;
+  }
+  .noAccount span{
+    color: blue;
+  }
+  .noAccount span:hover{
+    text-decoration: underline;
+  }
+ 
+  

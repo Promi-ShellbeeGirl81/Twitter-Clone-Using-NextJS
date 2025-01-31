@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function RegisterModal({ closeModal }) {
+export default function RegisterModal() {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedDay, setSelectedDay] = useState("");
@@ -98,11 +98,15 @@ export default function RegisterModal({ closeModal }) {
       }
     }
 
-    if (name === "password" && !value.trim()) {
-      setErrors((prev) => ({ ...prev, password: "Password cannot be empty" }));
-    } else {
-      setErrors((prev) => ({ ...prev, password: "" }));
-    }
+    if (name === "password") {
+      if (!value.trim()) {
+        setErrors((prev) => ({ ...prev, password: "Password cannot be empty" }));
+      } else if (value.length < 8) {
+        setErrors((prev) => ({ ...prev, password: "Password must be at least 8 characters long" }));
+      } else {
+        setErrors((prev) => ({ ...prev, password: "" }));
+      }
+    }    
   };
 
   const isFormValid =
@@ -168,9 +172,9 @@ export default function RegisterModal({ closeModal }) {
           {step === 1 && (
             <>
               <div className={styles.headerIcon}>
-                <button className={styles.closeButton} onClick={closeModal}>
+                <Link className={styles.closeButton} href="/"><button>
                   &times;
-                </button>
+                </button></Link>
                 <Image
                   className={styles.headerLogo}
                   src="/images/logo.png"

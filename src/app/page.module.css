@@ -5,7 +5,7 @@ body{
 .mainContainer{
   justify-content: center;
   align-items: center;
-  margin-top: 190px;
+  margin-top: 180px;
   margin-left: 200px;
 }
 .container{
@@ -117,4 +117,9 @@ body{
   color: white;
   border-style: none;
   background-color: transparent;
+}
+
+@media screen and (max-width:901px){
+  
+  
 }
