@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb"; 
+import { connectToDatabase } from "@/lib/mongodb";
 import nodemailer from "nodemailer";
 import crypto from "crypto";
 
@@ -7,7 +7,10 @@ export async function POST(req) {
   try {
     const { email } = await req.json();
     if (!email) {
-      return NextResponse.json({ message: "Email is required" }, { status: 400 });
+      return NextResponse.json(
+        { message: "Email is required" },
+        { status: 400 }
+      );
     }
 
     const { db } = await connectToDatabase();
@@ -18,14 +21,23 @@ export async function POST(req) {
     const existingUser = await usersCollection.findOne({ email });
 
     if (!existingUser) {
-      return NextResponse.json({ message: "User with this email doesn't exist" }, { status: 409 });
+      return NextResponse.json(
+        { message: "User with this email doesn't exist" },
+        { status: 409 }
+      );
     }
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpiration = Date.now() + 3600000;
 
     await usersCollection.updateOne(
       { email },
-      { $set: { verificationToken, verificationTokenExpiration, isVerified: false } }
+      {
+        $set: {
+          verificationToken,
+          verificationTokenExpiration,
+          isVerified: false,
+        },
+      }
     );
 
     const transporter = nodemailer.createTransport({
@@ -45,10 +57,15 @@ export async function POST(req) {
       text: `Click the link below to reset your password:\n\n${verificationLink}`,
     });
 
-    return NextResponse.json({ message: "Verification email sent successfully" }, { status: 200 });
-
+    return NextResponse.json(
+      { message: "Verification email sent successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error sending verification email:", error);
-    return NextResponse.json({ message: "Failed to send verification email", error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to send verification email", error: error.message },
+      { status: 500 }
+    );
   }
 }

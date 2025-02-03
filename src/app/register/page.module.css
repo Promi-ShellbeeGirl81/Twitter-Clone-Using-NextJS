@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   right: 0;
-  bottom:0;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
@@ -145,10 +145,9 @@
   margin-top: -20px;
   margin-bottom: 30px;
 }
-.closeButton button{
-    border-style: none;
-    background-color: transparent;
-    color: white;
-    font-size: 30px;
+.closeButton button {
+  border-style: none;
+  background-color: transparent;
+  color: white;
+  font-size: 30px;
 }
-

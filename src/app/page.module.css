@@ -1,28 +1,28 @@
-body{
+body {
   background-color: black;
   color: white;
 }
-.mainContainer{
+.mainContainer {
   justify-content: center;
   align-items: center;
   margin-top: 180px;
   margin-left: 200px;
 }
-.container{
+.container {
   display: flex;
 }
-.right{
+.right {
   margin-top: 50px;
   margin-left: 250px;
 }
-.right h1{
+.right h1 {
   font-size: 70px;
 }
-.right h3{
+.right h3 {
   font-size: 30px;
   margin-top: 50px;
 }
-.googleButton{
+.googleButton {
   background-color: white;
   color: rgb(64, 64, 54);
   border-radius: 30px;
@@ -37,7 +37,7 @@ body{
   padding-left: 60px;
   padding-top: 12px;
 }
-.githubButton{
+.githubButton {
   background-color: white;
   color: black;
   border-radius: 30px;
@@ -50,7 +50,7 @@ body{
   gap: 10px;
   padding-left: 60px;
 }
-.signupButton{
+.signupButton {
   background-color: rgb(25, 85, 250);
   border-radius: 30px;
   padding: 10px 20px;
@@ -58,44 +58,47 @@ body{
   width: 300px;
   margin: 10px;
 }
-.githubButton:hover, .googleButton:hover, .signupButton:hover{
+.githubButton:hover,
+.googleButton:hover,
+.signupButton:hover {
   cursor: pointer;
 }
-.agreement{
+.agreement {
   width: 60%;
   font-size: small;
   color: rgba(255, 255, 255, 0.438);
 }
-.agreement span{
+.agreement span {
   color: rgb(25, 85, 250);
 }
-.agreement span:hover{
+.agreement span:hover {
   text-decoration: underline;
 }
-.alreadyAcc{
+.alreadyAcc {
   margin-top: 50px;
   font-weight: 600;
   font-size: 18px;
 }
 
-.divider{
+.divider {
   display: flex;
   align-items: center;
   text-align: center;
   margin: 10px;
 }
-.divider::before, .divider::after{
-  content: '';
+.divider::before,
+.divider::after {
+  content: "";
   flex: none;
   width: 29%;
   border-bottom: 1px solid rgba(255, 255, 255, 0.438);
 }
-.divider span{
+.divider span {
   color: white;
   margin: 0 10px;
 }
 
-.signinButton{
+.signinButton {
   color: rgb(25, 85, 250);
   border: 1px solid #ccc;
   border-radius: 30px;
@@ -106,14 +109,14 @@ body{
   margin-top: 30px;
   margin-bottom: 120px;
 }
-.loginFooter{
+.loginFooter {
   color: rgba(255, 255, 255, 0.438);
   font-size: 14px;
   gap: 14px;
   display: flex;
   flex-wrap: wrap;
 }
-.signupButton button{
+.signupButton button {
   color: white;
   border-style: none;
   background-color: transparent;
@@ -123,7 +126,7 @@ body{
   .container {
     flex-direction: column;
   }
-  .mainContainer{
+  .mainContainer {
     margin-top: 40px;
     margin-left: 80px;
   }
@@ -133,8 +136,8 @@ body{
   }
 
   .left img {
-    width: 100%; 
-    height: auto; 
+    width: 100%;
+    height: auto;
   }
 
   .right {
@@ -158,11 +161,12 @@ body{
     width: 350px;
   }
 
-  .googleButton, .githubButton{
+  .googleButton,
+  .githubButton {
     padding-left: 90px;
   }
 
-  .signinButton{
+  .signinButton {
     margin-bottom: 60px;
   }
 }
@@ -172,10 +176,11 @@ body{
     flex-direction: column;
   }
 
-  .divider::before, .divider::after{
+  .divider::before,
+  .divider::after {
     width: 15%;
   }
-  .mainContainer{
+  .mainContainer {
     margin-top: 40px;
     margin-left: 80px;
   }
@@ -185,8 +190,8 @@ body{
   }
 
   .left img {
-    width: 100%; 
-    height: auto; 
+    width: 100%;
+    height: auto;
   }
 
   .right {
@@ -210,14 +215,15 @@ body{
     width: 350px;
   }
 
-  .googleButton, .githubButton{
+  .googleButton,
+  .githubButton {
     padding-left: 90px;
   }
 
-  .signinButton{
+  .signinButton {
     margin-bottom: 60px;
   }
-  .loginFooter{
+  .loginFooter {
     width: 80%;
   }
 }

@@ -232,7 +232,9 @@ export default function LoginModal() {
               <button
                 className={styles.registerSubmit}
                 type="submit"
-                disabled={!isPasswordValid || isLoadingUsers || errors.identifier}
+                disabled={
+                  !isPasswordValid || isLoadingUsers || errors.identifier
+                }
               >
                 Log in
               </button>

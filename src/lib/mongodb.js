@@ -1,4 +1,3 @@
-// src/lib/mongodb.js
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -7,9 +6,6 @@ if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable");
 }
 
-/**
- * Global caching to prevent multiple connections in development.
- */
 let cached = global.mongoose;
 
 if (!cached) {
@@ -26,15 +22,13 @@ async function connectToDatabase() {
   }
 
   if (!cached.promise) {
-    const opts = {
-      // With Mongoose 6+, these options are defaults:
-      // useNewUrlParser: true,
-      // useUnifiedTopology: true,
-    };
+    const opts = {};
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
-      return mongooseInstance.connection;
-    });
+    cached.promise = mongoose
+      .connect(MONGODB_URI, opts)
+      .then((mongooseInstance) => {
+        return mongooseInstance.connection;
+      });
   }
 
   cached.conn = await cached.promise;

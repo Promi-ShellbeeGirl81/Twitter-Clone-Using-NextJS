@@ -4,6 +4,7 @@ import styles from "./page.module.css";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function RegisterModal() {
   const [selectedMonth, setSelectedMonth] = useState("");
@@ -47,35 +48,55 @@ export default function RegisterModal() {
   const handleSignUp = async (e) => {
     e.preventDefault();
     setPending(true);
+  
     if (!form.name || !form.email || !form.password || !selectedMonth || !selectedDay || !selectedYear) {
-      alert("Please fill all the required fields.");
+      setErrors("Please fill all the required fields.");
       setPending(false);
       return;
     }
-    const fullDOB = `${selectedYear}-${selectedMonth.toString().padStart(2, '0')}-${selectedDay.toString().padStart(2, '0')}`;
+  
+    const fullDOB = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
     const updatedForm = { ...form, dateOfBirth: fullDOB };
+  
     try {
-      const res = await fetch("api/auth/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedForm),
       });
+  
+      const result = await res.json();
+  
       if (res.ok) {
-        setPending(false);
-        router.push("/home");
-        //console.log(updatedForm);
+        console.log("User created successfully:", result);
+  
+        // **Wait to allow database sync**
+        await new Promise((resolve) => setTimeout(resolve, 500));
+  
+        // **Now sign in**
+        const signInResult = await signIn("credentials", {
+          redirect: false,
+          identifier: form.email,
+          password: form.password,
+        });
+  
+        if (signInResult.ok) {
+          router.replace("/home"); 
+        } else {
+          console.error("Sign in failed:", signInResult);
+          setErrors("Sign in failed. Please try logging in manually.");
+        }
       } else {
-        setPending(false);
-        //console.log(updatedForm);
+        setErrors(result.message);
       }
     } catch (error) {
+      console.log("Error:", error);
+      setErrors("Something went wrong. Please try again.");
+    } finally {
       setPending(false);
-      console.log(error);
     }
-  };
-
+  };    
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));

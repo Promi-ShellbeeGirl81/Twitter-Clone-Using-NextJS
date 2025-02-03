@@ -18,17 +18,17 @@ export default function PasswordReset() {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
     const emailFromUrl = urlParams.get("email");
-  
+
     console.log("URL Params:", urlParams);
     console.log("Token:", tokenFromUrl);
     console.log("Email:", emailFromUrl);
-  
+
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
-      setEmail(emailFromUrl || ""); 
+      setEmail(emailFromUrl || "");
       setStep("reset");
     }
-  }, []);  
+  }, []);
 
   // Handle Email Submission (Step 1)
   const handleEmailSubmit = async (e) => {
@@ -44,7 +44,7 @@ export default function PasswordReset() {
       });
 
       const data = await res.json();
-    
+
       if (!res.ok) {
         setError(data.message || "Failed to send reset email");
       } else {
@@ -106,7 +106,9 @@ export default function PasswordReset() {
               alt="Logo"
             />
           </div>
-          <h2>{step === "reset" ? "Reset Your Password" : "Forgot Password"}</h2>
+          <h2>
+            {step === "reset" ? "Reset Your Password" : "Forgot Password"}
+          </h2>
         </div>
 
         {step === "email" && (
@@ -136,7 +138,9 @@ export default function PasswordReset() {
         )}
 
         {step === "emailSent" && (
-          <p className={styles.success}>✅ A reset link has been sent to your email.</p>
+          <p className={styles.success}>
+            ✅ A reset link has been sent to your email.
+          </p>
         )}
 
         {step === "reset" && (
@@ -167,7 +171,7 @@ export default function PasswordReset() {
               <button
                 className={ownstyles.nextButton}
                 type="submit"
-                disabled={!password || password.length < 8 || pending} 
+                disabled={!password || password.length < 8 || pending}
               >
                 {pending ? "Resetting..." : "Reset Password"}
               </button>
