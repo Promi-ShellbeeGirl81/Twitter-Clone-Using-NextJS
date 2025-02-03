@@ -25,6 +25,7 @@ export default function LoginModal() {
     identifier: "",
     password: "",
   });
+
   const handleProvider = async (provider) => {
     await signIn(provider, {
       callbackUrl: "/home",
@@ -44,7 +45,7 @@ export default function LoginModal() {
     if (res.error) {
       setErrors((prev) => ({
         ...prev,
-        identifier: "Something went wrong",
+        password: "Incorrect password. Please try again.",
       }));
     } else if (res.ok) {
       router.push("./home");
@@ -66,8 +67,9 @@ export default function LoginModal() {
     };
     fetchUsers();
   }, []);
+
   const isFormValid = form.identifier.trim() && !errors.identifier;
-  const isFormValid2 = form.password.trim() && !errors.password;
+  const isPasswordValid = form.password.trim() && !errors.password;
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -185,7 +187,10 @@ export default function LoginModal() {
 
                 <button
                   className={ownstyles.forgetButton}
-                  onClick={()=>router.push("/forgetPassword")}
+                  onClick={() => {
+                    router.push("./resetPassword");
+                    console.log("Navigating to forgetPassword...");
+                  }}
                 >
                   Forgot Password
                 </button>
@@ -227,13 +232,13 @@ export default function LoginModal() {
               <button
                 className={styles.registerSubmit}
                 type="submit"
-                disabled={!isFormValid2 || isLoadingUsers || errors.identifier}
+                disabled={!isPasswordValid || isLoadingUsers || errors.identifier}
               >
                 Log in
               </button>
               {errors.identifier && (
-                  <p className={styles.error}>{errors.identifier}</p>
-                )}
+                <p className={styles.error}>{errors.identifier}</p>
+              )}
             </>
           )}
         </form>

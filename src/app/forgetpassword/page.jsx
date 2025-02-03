@@ -26,11 +26,10 @@ export default function ForgetPassword() {
 
       const data = await res.json();
 
-      if (res.ok) {
-        router.push("/check-your-email"); // Redirect to a page that tells them to check their email
-      } else {
+      if (!res.ok) {
         setError(data.message || "Failed to send reset email");
       }
+      else set
     } catch (error) {
       setError("Error sending reset email");
       console.error(error);

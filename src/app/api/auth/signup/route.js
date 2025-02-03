@@ -1,4 +1,4 @@
-import connectToDatabase from "@/lib/mongodb";
+import {connectToDatabase} from "@/lib/mongodb";
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
