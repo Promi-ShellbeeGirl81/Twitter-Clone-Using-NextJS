@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function PasswordReset() {
-  const [step, setStep] = useState("email"); // Email entry first
+  const [step, setStep] = useState("email"); 
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);

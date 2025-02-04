@@ -1,12 +1,11 @@
-import { connectToDatabase } from "@/lib/mongodb";
-import bcrypt from "bcryptjs";
-import User from "@/models/user";
 import NextAuth from "next-auth";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { handleOAuthLogin } from "../../../../controllers/authController";
+import { authorizeUser } from "../../../../controllers/authController";
 
-const handler = NextAuth({
+const authOptions = {
   session: {
     strategy: "jwt",
   },
@@ -25,77 +24,27 @@ const handler = NextAuth({
         identifier: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
-        try {
-          await connectToDatabase();
-          //console.log("cre" + credentials);
-          const user = await User.findOne({
-            $or: [
-              { email: credentials.identifier },
-              { name: credentials.identifier },
-            ],
-          });
-          console.log("user" + user);
-          if (!user) {
-            console.log("No user found with this identifier.");
-            return null;
-          }
-          const isValidPassword = await bcrypt.compare(
-            credentials.password,
-            user.password
-          );
-          console.log(
-            "Stored password hash:",
-            user.password,
-            credentials.password
-          );
-
-          if (!isValidPassword) {
-            console.log("Pass no match");
-            return null;
-          }
-          return user;
-        } catch (error) {
-          console.log(error);
-          {
-            return null;
-          }
-        }
-      },
-    }),
+      authorize: authorizeUser,
+    }),    
   ],
   callbacks: {
     async signIn({ account, profile }) {
-      if (account?.provider === "github") {
-        console.log("Github login: ${profile.email}, ${profile.name}");
-        await connectToDatabase();
-        const existingUser = User.findOne({ email: profile.email });
-        if (!existingUser) {
-          await User.create({
-            id: profile.id,
-            email: profile.email,
-            name: profile.name || profile.login,
-            image: profile.image,
-          });
+      if (account.provider === "github" || account.provider === "google") {
+        const user = await handleOAuthLogin(account, profile);
+        if (user) {
+          return true;  
+        } else {
+          return false;  
         }
       }
-      if (account?.provider === "google") {
-        console.log(`Google login: ${profile.email}, ${profile.name}`);
-        const existingUser = await User.findOne({ email: profile.email });
-        if (!existingUser) {
-          await User.create({
-            id: profile.sub, 
-            email: profile.email,
-            name: profile.name || "Google User",
-            image: profile.picture,
-          });
-        }
-      }
-      return true;
+      return true; 
     },
     async jwt({ token, user }) {
       if (user) {
-        (token.id = user._id), (token.email = user.email);
+        token.id = user._id;
+        token.email = user.email;
+        token.name = user.name;
+        token.image = user.image;
       }
       return token;
     },
@@ -104,15 +53,17 @@ const handler = NextAuth({
         session.user = {
           email: token.email,
           name: token.name,
-          image: token.picture,
+          image: token.image,
         };
       }
       return session;
     },
-  },
+  },  
   pages: {
-    signIn: "/login",
+    signIn: "/home",
   },
   secret: process.env.NEXTAUTH_SECRET,
-});
-export { handler as GET, handler as POST };
+};
+
+export const GET = (req, res) => NextAuth(req, res, authOptions);
+export const POST = (req, res) => NextAuth(req, res, authOptions);

@@ -11,12 +11,10 @@ const UserSchema = new Schema({
     unique: true,
   },
   password: {
-    required: true,
     type: String,
     minLength: 6,
   },
   dateOfBirth:{
-    required: true,
     type: Date,
   },
   joinedDate:{

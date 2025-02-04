@@ -70,24 +70,20 @@ export default function RegisterModal() {
       if (res.ok) {
         console.log("User created successfully:", result);
   
-        // **Wait to allow database sync**
-        await new Promise((resolve) => setTimeout(resolve, 500));
-  
-        // **Now sign in**
         const signInResult = await signIn("credentials", {
           redirect: false,
-          identifier: form.email,
+          identifier: form.email, 
           password: form.password,
         });
   
-        if (signInResult.ok) {
+        if (signInResult?.ok) {
           router.replace("/home"); 
         } else {
-          console.error("Sign in failed:", signInResult);
+          console.error("Sign-in failed:", signInResult);
           setErrors("Sign in failed. Please try logging in manually.");
         }
       } else {
-        setErrors(result.message);
+        setErrors(result.message || "Something went wrong during registration.");
       }
     } catch (error) {
       console.log("Error:", error);
@@ -95,7 +91,8 @@ export default function RegisterModal() {
     } finally {
       setPending(false);
     }
-  };    
+  };
+    
   
   const handleChange = (e) => {
     const { name, value } = e.target;
