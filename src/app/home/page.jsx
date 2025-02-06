@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import styles from "./page.module.css";
 import Navbar from "../components/Navbar/page";
 import { MoreHorizontal } from "lucide-react";
+import Sidebar from "../components/Sidebar/page";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -71,18 +72,7 @@ export default function HomePage() {
         <button onClick={handleSignOut}>Logout</button>
       </div>
       <div className={styles.rightcontainer}>
-        <h1>Home Page</h1>
-        {session.user?.image && (
-          <Image
-            src={session.user.image}
-            width={100}
-            height={100}
-            alt="propic"
-          ></Image>
-        )}
-        <h1>{session.user?.name}</h1>
-        <h1>{session.user?.email}</h1>
-        <button onClick={handleSignOut}>Logout</button>
+        <Sidebar/>
       </div>
     </div>
   );
