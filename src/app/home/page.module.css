@@ -1,0 +1,43 @@
+body{
+    margin: 0 80px;
+}
+.container{
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+}
+.user{
+    display: flex;
+    border-radius: 30px;
+    font-size: 8px;
+    font-weight: 200;
+    padding: 10px 15px;
+    text-align: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 30px;
+    color: #fff;
+    background-color: #000;
+    border: none;
+}
+.user:hover{
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.user img{
+    border-radius: 50%;
+}
+.username{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.username h3{
+    font-size: 15px;
+    color: gray;
+}
+@media screen and (max-width: 901px){
+    .username, .icon{
+        display: none;
+    }
+}

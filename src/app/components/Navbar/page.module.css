@@ -1,0 +1,71 @@
+body{
+    background-color: #000;
+    color: #fff;
+}
+.navbar{
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+    width: fit-content
+}
+.logo{
+    font-weight: 900;
+    width: fit-content;
+    border: none;
+    background-color: #000;
+    border-radius: 30px;
+
+}
+
+.logo:hover{
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: 0.3s;
+}
+    
+.menuItem{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 15px;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 18px;
+    text-align: left;
+    width: fit-content;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: background 0.3s;
+    margin-top: 6px;
+}
+.menuItem:hover{
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.postBtn{
+    background-color: white;
+    border-radius: 30px;
+    padding: 10px;
+    font-size: 18px;
+    transition: 0.3s;
+    margin-top: 25px;
+}
+.postBtn .postIcon{
+    display: none;
+}
+.postBtn:hover{
+    background-color: rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+}
+
+@media screen and (max-width: 901px) {
+    .menuItem span{
+        display: none;
+    }
+    .postBtn p{
+        display: none;
+    }
+    .postBtn .postIcon{
+        display: block;
+    }
+}

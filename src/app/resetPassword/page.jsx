@@ -30,7 +30,6 @@ export default function PasswordReset() {
     }
   }, []);
 
-  // Handle Email Submission (Step 1)
   const handleEmailSubmit = async (e) => {
     e.preventDefault();
     setPending(true);
@@ -48,7 +47,8 @@ export default function PasswordReset() {
       if (!res.ok) {
         setError(data.message || "Failed to send reset email");
       } else {
-        setStep("emailSent"); // Proceed to email sent confirmation step
+        setStep("emailSent"); 
+        router.push("/login");
       }
     } catch (error) {
       setError("Error sending reset email");
@@ -70,7 +70,6 @@ export default function PasswordReset() {
     setError("");
 
     try {
-      // In step 2, we're submitting the email from the URL, so only the password is required
       const res = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -121,7 +120,7 @@ export default function PasswordReset() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={pending} // Disable while pending
+                disabled={pending} 
               />
               {error && <p className={styles.error}>{error}</p>}
             </div>
@@ -129,7 +128,7 @@ export default function PasswordReset() {
               <button
                 className={ownstyles.nextButton}
                 type="submit"
-                disabled={!email || pending} // Disable submit when email is empty or pending
+                disabled={!email || pending} 
               >
                 {pending ? "Sending..." : "Submit"}
               </button>
@@ -146,14 +145,13 @@ export default function PasswordReset() {
         {step === "reset" && (
           <form onSubmit={handlePasswordSubmit}>
             <div className={styles.formGroup}>
-              {/* Email field in step 2, it's disabled and readonly */}
               <input
                 type="email"
                 name="email"
                 value={email}
                 readOnly
                 disabled
-                className={styles.readOnlyInput} // Optional: Add specific styling for read-only inputs
+                className={styles.readOnlyInput} 
               />
             </div>
             <div className={styles.formGroup}>
