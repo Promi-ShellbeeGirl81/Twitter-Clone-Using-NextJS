@@ -1,12 +1,18 @@
 body {
   background-color: #000;
   color: #fff;
+  overflow: hidden;
 }
 .navbar {
   display: flex;
   flex-direction: column;
   margin-top: 20px;
   width: fit-content;
+  height: 100vh; 
+  overflow: hidden; 
+  position: fixed; 
+  top: 0;
+  left: 80px;
 }
 .logo {
   font-weight: 900;
@@ -57,6 +63,64 @@ body {
   cursor: pointer;
 }
 
+.user{
+  display: flex;
+  border-radius: 30px;
+  font-size: 7px;
+  font-weight: 200;
+  padding: 8px 10px;
+  text-align: center;
+  align-items: center;
+  gap: 10px;
+  margin-top: 30px;
+  color: #fff;
+  background-color: #000;
+  border: none;
+}
+.user:hover{
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.user img{
+  border-radius: 50%;
+}
+.username{
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.username h3{
+  font-size: 12px;
+  color: gray;
+}
+.modalOverlay{
+  position: fixed;
+  bottom:100px;
+  left:100px;
+  width: 250px;
+  background-color: rgba(0,0,0,0.5);
+}
+.modal{
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #000;
+  box-shadow: 0 4px 10px rgba(255,255,255,0.3);
+  border-radius: 10px;
+}
+.modal button{
+  padding: 10px;
+  border: none;
+  background-color: #000;
+  color: #fff;
+  width: 100%;
+}
+.modal button:hover{
+  cursor: pointer;
+  background-color: rgba(255,255,255,0.1);
+}
+
 @media screen and (max-width: 1001px) {
   .menuItem span {
     display: none;
@@ -67,4 +131,13 @@ body {
   .postBtn .postIcon {
     display: block;
   }
+  .username, .icon{
+    display: none;
+}
+.menuItem{
+  padding: 12px 15px;
+}
+.navbar{
+  left: 40px;
+}
 }

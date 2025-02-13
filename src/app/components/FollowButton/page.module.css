@@ -1,0 +1,27 @@
+.container{
+    display: flex;
+    gap: 60px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.followbtn{
+    width: 290px;
+    color: white;
+    background-color: black;
+    border: none;
+    padding: 18px;
+    font-size: 15px;
+    font-weight: bold;
+}
+.followbtn::after{
+    text-decoration: underline 1px solid rgb(25, 85, 250);
+}
+.followbtn:hover{
+    cursor: pointer;
+    background-color:rgba(255, 255, 255, 0.1);
+}
+.underline{
+
+    padding-bottom: 16px;
+    border-bottom: 3px solid rgb(25, 85, 250);
+}

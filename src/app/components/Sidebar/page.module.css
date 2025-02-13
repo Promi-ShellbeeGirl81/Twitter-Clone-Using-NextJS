@@ -1,3 +1,7 @@
+.container{
+    overflow: hidden;
+ position: fixed;
+}
 .header{
     display: flex;
     margin-top: 10px;
@@ -26,7 +30,7 @@
     width: 300px;
     padding: 20px;
     border-radius: 20px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
 }
 .subscribe button:hover{
     cursor: pointer;
@@ -101,7 +105,7 @@
 .followContainer{
     display: flex;
     gap: 30px;
-    margin: 18px 0;
+    margin: 15px 0;
     padding: 10px 0;
 }
 .followContainer:hover{
@@ -110,14 +114,17 @@
 }
 .followContainer .name{
     font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
 }
 .followContainer .handle{
     color: rgba(255, 255, 255, 0.438);
+    font-size: 12px;
 }
 .followContainer .followButton{
-    padding: 10px 18px;
+    padding: 8px 18px;
     border-radius: 30px;
-    font-size: 15px;
+    font-size: 12px;
     font-weight: 600;
 }
 .followContainer .followButton:hover{
