@@ -48,6 +48,7 @@ margin: auto;
   color: rgba(255, 255, 255, 0.5);
   font-size: 17px;
   margin-bottom: 25px;
+  margin-top: 15px;
 }
 .engagement:hover {
   cursor: pointer;

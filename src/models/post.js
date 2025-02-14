@@ -8,7 +8,7 @@ const PostSchema = new Schema({
   },
   postText: {
     type: String,
-    default:" ",
+    default: " ",
   },
   postMedia: {
     type: [String],
@@ -26,6 +26,7 @@ const PostSchema = new Schema({
     type: Number,
     default: 0,
   },
+  likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
   viewCount: {
     type: Number,
     default: 0,

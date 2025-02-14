@@ -9,33 +9,134 @@ import {
 import styles from "./page.module.css";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 const NewsFeed = () => {
   const [users, setUsers] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [likedPosts, setLikedPosts] = useState({});
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    const fetchPostAndUsers = async () => {
+    console.log("Session Status:", status);
+    console.log("Session Data:", session);
+  
+    if (status !== "authenticated" || !session?.user?.email) {
+      console.log("User not authenticated or session not loaded yet.");
+      return;
+    }
+  
+    const fetchUserId = async () => {
       try {
-        const postResponse = await fetch(`http://localhost:3000/api/posts`);
-        const postData = await postResponse.json();
-        const userIds = [...new Set(postData.map((post) => post.userId))];
-        const userPromises = userIds.map((userId) =>
-          fetch(`http://localhost:3000/api/users/${userId}`).then((res) =>
-            res.json()
-          )
-        );
-        const usersData = await Promise.all(userPromises);
-        setUsers(usersData);
-        setPosts(postData);
+        const res = await fetch(`/api/users/email/${session.user.email}`);
+        if (!res.ok) throw new Error("Failed to fetch user ID.");
+        
+        const userData = await res.json();
+        console.log("Fetched User Data:", userData);
+  
+        if (!userData._id) {
+          console.error("User ID is missing from response.");
+          return;
+        }
+  
+        fetchPostAndUsers(userData._id); 
       } catch (error) {
-        console.log(error);
-        setUsers([]);
-        setPosts([]);
+        console.error("Error fetching user ID:", error);
       }
     };
-    fetchPostAndUsers();
-  }, []);
+  
+    fetchUserId();
+  }, [session, status]);
+  
+  const fetchPostAndUsers = async (userId) => {
+    try {
+      const [postResponse, userResponse] = await Promise.all([
+        fetch(`http://localhost:3000/api/posts`),
+        fetch(`http://localhost:3000/api/users`),
+      ]);
+  
+      if (!postResponse.ok || !userResponse.ok) {
+        throw new Error("Failed to fetch posts or users.");
+      }
+  
+      const postData = await postResponse.json();
+      const userData = await userResponse.json();
+      console.log("Fetched Posts:", postData);
+      console.log("Fetched Users:", userData);
+  
+      const userLikedPosts = {};
+      postData.forEach((post) => {
+        const likedBy = post.likedBy || [];
+        userLikedPosts[post._id] = likedBy.includes(userId);
+      });
+  
+      setPosts(postData);
+      setUsers(userData);
+      setLikedPosts(userLikedPosts);
+    } catch (error) {
+      console.error("Error fetching posts or users:", error);
+    }
+  };
+  
+
+  const handleLikeClick = async (postId) => {
+    try {
+      if (!session?.user?.email) {
+        console.warn("User is not authenticated.");
+        return;
+      }
+  
+      // Fetch user ID based on email
+      const userRes = await fetch(`/api/users/email/${session.user.email}`);
+      if (!userRes.ok) {
+        console.error("Failed to fetch user ID.");
+        return;
+      }
+  
+      const userData = await userRes.json();
+      const userId = userData._id; // Ensure userId is retrieved
+  
+      if (!userId) {
+        console.error("User ID is missing.");
+        return;
+      }
+  
+      console.log("User ID:", userId);
+  
+      // Send like request
+      const res = await fetch(`/api/posts/${postId}/like`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+  
+      if (!res.ok) {
+        const error = await res.json();
+        console.error("Error:", error.error);
+        return;
+      }
+  
+      const updatedPost = await res.json();
+  
+      // Update local state
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? { ...post, likeCount: updatedPost.likeCount, likedBy: updatedPost.likedBy }
+            : post
+        )
+      );
+  
+      // Toggle like status
+      setLikedPosts((prev) => ({
+        ...prev,
+        [postId]: !prev[postId],
+      }));
+    } catch (error) {
+      console.error("Error updating like count", error);
+    }
+  };
+  
 
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
@@ -50,9 +151,12 @@ const NewsFeed = () => {
           const repostCount = Number(post.repostCount) || 0;
           const likeCount = Number(post.likeCount) || 0;
           const viewCount = Number(post.viewCount) || 0;
-          const user = users.find((user) => user._id === post.userId);
+
+          const user = users.find((u) => u._id === post.userId);
           const userName = user ? user.name : "unknown";
-          const userNickName = user ? user.nickname : "unknown";
+
+          const isLiked = likedPosts[post._id];
+
           return (
             <div key={post._id} className={styles.post}>
               <div className={styles.userInfo}>
@@ -65,78 +169,84 @@ const NewsFeed = () => {
                 />
 
                 <div className={styles.userNames}>
-                  <h3> {userName} </h3>
-                  <h5> @{userName} </h5>
+                  <h3>{userName}</h3>
+                  <h5>@{userName}</h5>
                 </div>
               </div>
+
               {post.postText && (
-                <p className={styles.postText}> {post.postText}</p>
+                <p className={styles.postText}>{post.postText}</p>
               )}
-              {post.postMedia &&
-                Array.isArray(post.postMedia) &&
-                post.postMedia.length > 0 && (
-                  <div className={styles.postMedia}>
-                    {post.postMedia.slice(0, 4).map((media, index) => (
-                      <div key={index}>
-                        {media.endsWith(".mp4") ? (
-                          <video width="100%" controls>
-                            <source src={media} type="video/mp4" />
-                          </video>
-                        ) : (
-                          <Image
-                            src={media}
-                            width={600}
-                            height={300}
-                            alt={`post content ${index + 1}`}
-                            className={styles.postImage}
-                          />
-                        )}
-                      </div>
-                    ))}
-                    {post.postMedia.length > 4 && (
-                      <div className={styles.extraMedia}>
-                        +{post.postMedia.length - 4} more
-                      </div>
-                    )}
-                  </div>
-                )}
+
+              {Array.isArray(post.postMedia) && post.postMedia.length > 0 && (
+                <div className={styles.postMedia}>
+                  {post.postMedia.slice(0, 4).map((media, index) => (
+                    <div key={index}>
+                      {media.endsWith(".mp4") ? (
+                        <video width="100%" controls>
+                          <source src={media} type="video/mp4" />
+                        </video>
+                      ) : (
+                        <Image
+                          src={media}
+                          width={600}
+                          height={300}
+                          alt={`post content ${index + 1}`}
+                          className={styles.postImage}
+                        />
+                      )}
+                    </div>
+                  ))}
+                  {post.postMedia.length > 4 && (
+                    <div className={styles.extraMedia}>
+                      +{post.postMedia.length - 4} more
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className={styles.engagement}>
                 <div className={styles.engagement1}>
                   <span className={styles.en1}>
                     <span className={styles.icon}>
-                      <MessageCircle size={15} />{" "}
+                      <MessageCircle size={15} />
                     </span>
                     {replyCount}
                   </span>
                   <span className={styles.en2}>
                     <span className={styles.icon}>
-                      <Repeat size={15} />{" "}
+                      <Repeat size={15} />
                     </span>
                     {repostCount}
                   </span>
-                  <span className={styles.en3}>
+                  <span
+                    className={styles.en3}
+                    onClick={() => handleLikeClick(post._id)}
+                    style={{
+                      color: isLiked ? "red" : "rgba(255, 255, 255, 0.5)",
+                    }}
+                  >
                     <span className={styles.icon}>
-                      <Heart size={15} />{" "}
+                      <Heart size={15} fill={isLiked ? "red" : "none"} />
                     </span>
                     {likeCount}
                   </span>
                   <span className={styles.en1}>
                     <span className={styles.icon}>
                       <Eye size={15} />
-                    </span>{" "}
+                    </span>
                     {viewCount}
                   </span>
                 </div>
                 <div className={styles.engagement2}>
                   <span className={styles.en1}>
                     <span className={styles.icon}>
-                      <Bookmark size={16} />{" "}
+                      <Bookmark size={16} />
                     </span>
                   </span>
                   <span className={styles.en1}>
                     <span className={styles.icon}>
-                      <Share size={16} />{" "}
+                      <Share size={16} />
                     </span>
                   </span>
                 </div>
