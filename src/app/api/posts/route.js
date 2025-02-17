@@ -1,62 +1,85 @@
 import Post from "@/models/post";
 import { connectToDatabase } from "@/lib/mongodb";
 import { NextResponse } from "next/server";
-import {uploadMedia} from "@/lib/cloudinary";
-import { uptime } from "process";
+import User from "@/models/user";
 
-export async function GET() {
+// Helper function to get all posts and populate user information
+const getAllPosts = async () => {
+  try {
+    const posts = await Post.find().populate("userId", "name avatar"); // Populate userId field with name and avatar
+    return posts;
+  } catch (error) {
+    console.error("Error fetching posts:", error);
+    throw new Error("Error fetching posts");
+  }
+};
+
+export async function GET(req) {
   try {
     await connectToDatabase();
-    const posts = await Post.find();
+
+    // Fetch all posts
+    const posts = await getAllPosts();
+
+    // Log posts to see if userId is populated correctly
+    console.log(posts);
+
+    if (!posts.length) {
+      return NextResponse.json({ message: "No posts available" }, { status: 404 });
+    }
+
     return NextResponse.json(posts, { status: 200 });
   } catch (error) {
-    console.log(error);
-    return NextResponse.json(
-      { message: "Something went wrong" },
-      { status: 500 }
-    );
+    console.error("Error fetching posts:", error);
+    return NextResponse.json({ message: "Error fetching posts." }, { status: 500 });
   }
 }
 
 export async function POST(req) {
   try {
     await connectToDatabase();
-    const { userId, postText, postMedia } = await req.json();
+    const { userEmail, postText, postMedia, parentId } = await req.json();
 
-    // Log the incoming data
-    console.log("Received post data:", { userId, postText, postMedia });
-
-    if (!userId) {
-      console.error("Missing fields:", { userId, postText });
-      return NextResponse.json(
-        { message: "Missing user and postText" },
-        { status: 400 }
-      );
+    if (!userEmail || (postText === "" && !postMedia?.length)) {
+      return NextResponse.json({ message: "Missing user email or post content" }, { status: 400 });
     }
 
-    // Check if media is empty or not
-    if (!postText && postMedia.length === 0) {
-      console.error("No media or text uploaded");
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
-    const newPost = new Post({
-      userId,
-      postText,
-      postMedia,
-    });
+    let newPost;
+
+    if (parentId) {
+      const parentPost = await Post.findById(parentId);
+      if (!parentPost) {
+        return NextResponse.json({ message: "Parent post not found" }, { status: 404 });
+      }
+
+      newPost = new Post({
+        userId: user._id,
+        postText,
+        postMedia,
+        parentId,
+      });
+
+      await Post.findByIdAndUpdate(parentId, { $inc: { replyCount: 1 } });
+    } else {
+      newPost = new Post({
+        userId: user._id,
+        postText,
+        postMedia,
+        parentId: null,
+      });
+    }
+
     await newPost.save();
-    return NextResponse.json(
-      { message: "Post created successfully", post: newPost },
-      { status: 201 }
-    );
+    const savedPost = await Post.findById(newPost._id).populate("userId");
+
+    return NextResponse.json(savedPost, { status: 201 });
   } catch (error) {
-    console.log("Error in backend:", error);
-    return NextResponse.json(
-      { message: "Failed to create post", error: error.message },
-      { status: 500 }
-    );
+    console.error("Error in backend:", error);
+    return NextResponse.json({ message: "Failed to create post", error: error.message }, { status: 500 });
   }
 }
-
-
-
