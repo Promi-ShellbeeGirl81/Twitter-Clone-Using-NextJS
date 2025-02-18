@@ -1,0 +1,15 @@
+.posticonSection {
+    display: flex;
+    color: rgb(25, 85, 250);
+    margin-top: 15px;
+    margin-bottom: 20px;
+    margin-left: 45px;
+  }
+  .posticon {
+    border-radius: 50%;
+    padding: 5px;
+  }
+  .posticon:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+  }

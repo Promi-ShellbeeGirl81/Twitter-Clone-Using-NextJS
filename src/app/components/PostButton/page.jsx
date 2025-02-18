@@ -1,4 +1,4 @@
-import styles from "../StatusUpdate/page.module.css";
+import styles from "./page.module.css";
 
 const PostButton = ({ onClick, uploading }) => (
   <button

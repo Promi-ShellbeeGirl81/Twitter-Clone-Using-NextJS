@@ -2,14 +2,21 @@ body{
     margin: 0 70px;
 }
 .container{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 130px;
+    display: flex;
+    justify-content: space-around;
+   
+}
+.leftcontainer{
+    margin-left: 70px;
 }
 .middlecontainer{
-    margin-left: 100px;
-    
+    width: 600px;
 }
+.rightcontainer{
+    width: 100px;
+    margin-right: 70px;
+}
+
 @media screen and (max-width: 1001px){
     .icon{
         display: none;

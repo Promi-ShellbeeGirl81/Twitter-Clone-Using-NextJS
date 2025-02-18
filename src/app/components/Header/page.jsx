@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import styles from "../replyPopup/page.module.css";
+import styles from "./page.module.css";
 import Image from "next/image";
 const Header = ({ post }) => {
     const createdAtDate = new Date(post.createdAt);

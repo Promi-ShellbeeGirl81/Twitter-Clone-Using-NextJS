@@ -47,11 +47,11 @@ const NewsFeed = () => {
     try {
       const postRes = await fetch(`/api/posts`); // Fetch posts
       if (!postRes.ok) throw new Error("Failed to fetch posts.");
-      
+
       const postData = await postRes.json();
 
       // Attach user data to posts directly
-      const postsWithUsers = postData.map(post => {
+      const postsWithUsers = postData.map((post) => {
         return {
           ...post,
           userName: post.userId?.name || "Unknown",
@@ -100,7 +100,7 @@ const NewsFeed = () => {
   }, [status, fetchUserId]);
 
   const handlePostClick = (postId) => {
-    router.push(`/post/${postId}`); // Navigate to post detail
+    router.push(`/post/${postId}`);
   };
 
   const handleReplyClick = (event, post) => {
@@ -142,7 +142,7 @@ const NewsFeed = () => {
               <div
                 key={_id}
                 className={styles.post}
-                onClick={() => handlePostClick(_id)} // Navigate to post detail
+                onClick={() => handlePostClick(_id)}
               >
                 <div className={styles.userInfo}>
                   <Image
@@ -187,9 +187,15 @@ const NewsFeed = () => {
                   </div>
                 )}
 
-                <div className={styles.engagement}>
+                <div
+                  className={styles.engagement}
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <div className={styles.engagement1}>
-                    <span className={styles.en1} onClick={(e) => handleReplyClick(e, post)}>
+                    <span
+                      className={styles.en1}
+                      onClick={(e) => handleReplyClick(e, post)}
+                    >
                       <span className={styles.icon}>
                         <MessageCircle size={15} />
                       </span>

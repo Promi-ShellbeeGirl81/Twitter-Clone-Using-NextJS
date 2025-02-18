@@ -1,0 +1,13 @@
+.postbtn {
+    border: none;
+    background-color: #fff;
+    padding: 10px 20px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #000;
+    margin: 20px;
+    margin-top: 16px;
+    width: 80px;
+    height: 35px;
+  }
