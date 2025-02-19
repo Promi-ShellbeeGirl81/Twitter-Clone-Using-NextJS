@@ -12,8 +12,8 @@ import styles from "./page.module.css";
 import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation"; // Import useRouter for navigation
-import ReplyPopup from "../replyPopup/page"; // Import the ReplyPopup component
+import { useRouter } from "next/navigation"; 
+import ReplyPopup from "../replyPopup/page"; 
 
 const NewsFeed = () => {
   const { data: session, status } = useSession();
@@ -21,9 +21,9 @@ const NewsFeed = () => {
   const [posts, setPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState({});
   const [loading, setLoading] = useState(true);
-  const [replyPopupVisible, setReplyPopupVisible] = useState(false); // Manage reply popup visibility
-  const [selectedPost, setSelectedPost] = useState(null); // Track selected post for reply
-  const router = useRouter(); // Initialize router for navigation
+  const [replyPopupVisible, setReplyPopupVisible] = useState(false); 
+  const [selectedPost, setSelectedPost] = useState(null); 
+  const router = useRouter(); 
 
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
@@ -45,12 +45,11 @@ const NewsFeed = () => {
 
   const fetchPostAndUsers = async (userId) => {
     try {
-      const postRes = await fetch(`/api/posts`); // Fetch posts
+      const postRes = await fetch(`/api/posts`); 
       if (!postRes.ok) throw new Error("Failed to fetch posts.");
 
       const postData = await postRes.json();
 
-      // Attach user data to posts directly
       const postsWithUsers = postData.map((post) => {
         return {
           ...post,
@@ -76,25 +75,50 @@ const NewsFeed = () => {
   };
 
   const handleLikeClick = async (postId) => {
-    if (!userId) return; // Only allow liking if the user is authenticated
-
-    const updatedLikedPosts = { ...likedPosts, [postId]: !likedPosts[postId] };
+    if (!userId) return;
+  
+    const isLiked = !likedPosts[postId];
+    const updatedLikedPosts = { ...likedPosts, [postId]: isLiked };
     setLikedPosts(updatedLikedPosts);
-
+  
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === postId
+          ? { ...post, likeCount: isLiked ? post.likeCount + 1 : post.likeCount - 1 }
+          : post
+      )
+    );
+  
     try {
       const res = await fetch(`/api/posts/${postId}/like`, {
         method: "POST",
         body: JSON.stringify({ userId }),
         headers: { "Content-Type": "application/json" },
       });
+  
       if (!res.ok) throw new Error("Failed to update like status.");
-      // Optionally handle response data (e.g., new like count)
+  
+      const updatedPost = await res.json();
+      console.log("Updated post:", updatedPost); 
+  
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId ? { ...post, ...updatedPost } : post 
+        )
+      );
     } catch (error) {
       console.error(error);
-      setLikedPosts(likedPosts); // Reset like state if error occurs
+      setLikedPosts((prevLikedPosts) => ({ ...prevLikedPosts, [postId]: !isLiked }));
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? { ...post, likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1 }
+            : post
+        )
+      );
     }
   };
-
+  
   useEffect(() => {
     if (status === "authenticated") fetchUserId();
   }, [status, fetchUserId]);
@@ -104,15 +128,24 @@ const NewsFeed = () => {
   };
 
   const handleReplyClick = (event, post) => {
-    event.stopPropagation(); // Prevent the post click from firing
-    setSelectedPost(post); // Set the selected post for replying
-    setReplyPopupVisible(true); // Show the reply popup
+    event.stopPropagation(); 
+    setSelectedPost(post); 
+    setReplyPopupVisible(true); 
   };
 
   const closeReplyPopup = () => {
-    setReplyPopupVisible(false); // Close the reply popup
-    setSelectedPost(null); // Clear the selected post
+    setReplyPopupVisible(false); 
+    setSelectedPost(null); 
   };
+
+  const handleReplySubmit = (postId) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === postId ? { ...post, replyCount: post.replyCount + 1 } : post
+      )
+    );
+  };
+  
 
   return (
     <div className={styles.container}>
@@ -164,9 +197,17 @@ const NewsFeed = () => {
                   <div className={styles.postMedia}>
                     {postMedia.slice(0, 4).map((media, index) => (
                       <div key={index}>
-                        {media.endsWith(".mp4") ? (
+                        {media.endsWith(".mp4") || media.endsWith(".webm") ? (
                           <video width="100%" controls>
-                            <source src={media} type="video/mp4" />
+                            <source
+                              src={media}
+                              type={
+                                media.endsWith(".mp4")
+                                  ? "video/mp4"
+                                  : "video/webm"
+                              }
+                            />
+                            Your browser does not support the video tag.
                           </video>
                         ) : (
                           <Image
@@ -237,7 +278,7 @@ const NewsFeed = () => {
       )}
 
       {replyPopupVisible && selectedPost && (
-        <ReplyPopup post={selectedPost} onClose={closeReplyPopup} />
+        <ReplyPopup post={selectedPost} onClose={closeReplyPopup} onReplySubmit={handleReplySubmit }/>
       )}
     </div>
   );

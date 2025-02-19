@@ -1,50 +1,42 @@
-import { connectToDatabase } from "@/lib/mongodb";
-import User from "@/models/user";
-import bcrypt from "bcryptjs";
+import { handleOAuthLogin, authorizeUser } from "../services/authService";
 
-export const authorizeUser = async (credentials) => {
-  await connectToDatabase();
-
-  const user = await User.findOne({
-    $or: [{ email: credentials.identifier }, { name: credentials.identifier }],
-  });
-
-  if (!user) {
-    console.log("No user found with this identifier.");
-    return null;
+// Handle OAuth login (GitHub/Google)
+export const signIn = async ({ account, profile }) => {
+  if (account.provider === "github" || account.provider === "google") {
+    const user = await handleOAuthLogin(account, profile);
+    if (user) {
+      return true;
+    } else {
+      return false;
+    }
   }
-
-  const isValidPassword = await bcrypt.compare(
-    credentials.password,
-    user.password
-  );
-
-  if (!isValidPassword) {
-    console.log("Invalid Password");
-    return null;
-  }
-
-  return user;
+  return true;
 };
 
-export const handleOAuthLogin = async (account, profile) => {
-  await connectToDatabase();
-
-  // Await the query to check if the user exists
-  let existingUser = await User.findOne({ email: profile.email });
-
-  if (!existingUser) {
-    existingUser = await User.create({
-      id: profile.sub || profile.id,
-      email: profile.email,
-      name: profile.name || profile.login || "User",
-      image: profile.picture || profile.image,
-      provider: account.provider,
-    });
-    console.log("New user created:", existingUser);
-  } else {
-    console.log("Existing user found:", existingUser);
+// JWT callback logic to store user data
+export const jwt = async ({ token, user }) => {
+  if (user) {
+    token.id = user._id;
+    token.email = user.email;
+    token.name = user.name;
+    token.image = user.image;
   }
+  return token;
+};
 
-  return existingUser;
+// Session callback logic to persist user data
+export const session = async ({ session, token }) => {
+  if (token) {
+    session.user = {
+      email: token.email,
+      name: token.name,
+      image: token.image,
+    };
+  }
+  return session;
+};
+
+// Handle credential-based user authorization
+export const authorize = async (credentials) => {
+  return await authorizeUser(credentials);
 };

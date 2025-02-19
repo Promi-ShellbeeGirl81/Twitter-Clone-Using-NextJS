@@ -55,8 +55,6 @@ const Comment = ({ comment }) => {
           <button onClick={handleReplySubmit}>Post Reply</button>
         </div>
       )}
-
-      {/* Recursively render replies */}
       {comment.replies.length > 0 && (
         <div style={{ marginLeft: 20 }}>
           {comment.replies.map((reply) => (

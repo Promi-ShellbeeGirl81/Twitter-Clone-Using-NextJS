@@ -1,8 +1,7 @@
 import Image from "next/image";
 import styles from "./page.module.css";
-
 const FileUpload = ({ filePreview, selectedFile, onFileChange }) => {
-  const displayedFiles = filePreview.slice(0, 4); // Limit to 4 files for display
+  const displayedFiles = filePreview.slice(0, 4);
   const additionalFilesCount = filePreview.length - 4;
 
   return (
@@ -15,7 +14,6 @@ const FileUpload = ({ filePreview, selectedFile, onFileChange }) => {
         style={{ display: "none" }}
         multiple
       />
-
       {filePreview.length > 0 && (
         <div className={styles.imageGrid}>
           {displayedFiles.map((filePreviewSingle, index) => {
@@ -45,8 +43,6 @@ const FileUpload = ({ filePreview, selectedFile, onFileChange }) => {
           })}
         </div>
       )}
-
-      {/* Show count of additional files */}
       {additionalFilesCount > 0 && (
         <div className={styles.previewItem}>
           <span className={styles.moreImages}>+{additionalFilesCount}</span>

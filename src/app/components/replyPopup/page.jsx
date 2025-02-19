@@ -8,8 +8,7 @@ import IconsSection from "../IconsSection/page";
 import PostButton from "../PostButton/page";
 import FileUpload from "../FileUpload/page";
 
-
-const ReplyPopup = ({ post, onClose }) => {
+const ReplyPopup = ({ post, onClose, onReplySubmit }) => {
   const [reply, setReply] = useState("");
   const [selectedFile, setSelectedFile] = useState([]);
   const [filePreview, setFilePreview] = useState([]);
@@ -17,15 +16,15 @@ const ReplyPopup = ({ post, onClose }) => {
 
   const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
-    console.log("Selected files:", files); // Debugging log
-
+    console.log("Selected files:", files);
+  
     if (files.length > 0) {
       setSelectedFile((prevFiles) => [...prevFiles, ...files]);
       const fileUrls = files.map((file) => URL.createObjectURL(file));
-      console.log("Generated file URLs:", fileUrls); // Debugging log
+      console.log("Generated file URLs:", fileUrls);
       setFilePreview((prevPreviews) => [...prevPreviews, ...fileUrls]);
     }
-  };
+  };  
 
   const handleReply = async () => {
     if (!reply.trim() && selectedFile.length === 0) return;
@@ -68,6 +67,7 @@ const ReplyPopup = ({ post, onClose }) => {
       console.log("Response from API:", responseData);
 
       if (!res.ok) throw new Error("Failed to send reply.");
+      onReplySubmit(post._id);
 
       setReply("");
       setSelectedFile([]);
@@ -87,22 +87,22 @@ const ReplyPopup = ({ post, onClose }) => {
         <Header post={post} />
         <PostText post={post} />
         <div className={styles.textContainer}>
-        <ReplyInput reply={reply} setReply={setReply} session={session} />
-
-        <FileUpload
-          filePreview={filePreview}
-          selectedFile={selectedFile}
-          onFileChange={handleFileUpload}
-        />
+          <ReplyInput reply={reply} setReply={setReply} session={session} />
+          {/* Make sure FileUpload is correctly receiving filePreview and selectedFile */}
+          <FileUpload
+            filePreview={filePreview}
+            selectedFile={selectedFile}
+            onFileChange={handleFileUpload}
+          />
         </div>
-<div className={styles.postbottom}>
-        <IconsSection />
-        
+        <div className={styles.postbottom}>
+          <IconsSection />
           <PostButton onClick={handleReply} />
         </div>
       </div>
     </div>
   );
 };
+
 
 export default ReplyPopup;

@@ -1,14 +1,13 @@
-import User from "@/models/user";
-import {connectToDatabase} from "@/lib/mongodb";
+
 import { NextResponse } from "next/server";
+import { getUsers } from "@/controllers/userControllers/userAllController"; 
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
-    const users = await User.find();
-    return NextResponse.json(users, { status: 200 });
+    const { status, data } = await getUsers(); 
+    return NextResponse.json(data, { status }); 
   } catch (error) {
-    console.log(error);
+    console.error("Error in GET request:", error);
     return NextResponse.json(
       { message: "Something went wrong" },
       { status: 500 }

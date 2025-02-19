@@ -1,27 +1,22 @@
 import { NextResponse } from "next/server";
-import {connectToDatabase} from "@/lib/mongodb"; // Ensure this is your DB connection file
-import User from "@/models/user"; // Ensure your User model is correctly imported
+import { getUserByEmail } from "@/controllers/userControllers/userEmailController"; 
 
 export async function GET(req) {
   try {
-    await connectToDatabase();
-
-    // Extract email from request URL
     const email = req.nextUrl.pathname.split("/").pop(); 
 
     if (!email) {
       return NextResponse.json({ message: "Email is required" }, { status: 400 });
     }
 
-    const user = await User.findOne({ email });
+    const { status, data } = await getUserByEmail(email);
 
-    if (!user) {
-      return NextResponse.json({ message: "User not found" }, { status: 404 });
-    }
-
-    return NextResponse.json(user, { status: 200 });
+    return NextResponse.json(data, { status });
 
   } catch (error) {
-    return NextResponse.json({ message: "Server error", error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { message: "Server error", error: error.message },
+      { status: 500 }
+    );
   }
 }
