@@ -1,13 +1,20 @@
 import { NextResponse } from "next/server";
-import { POST as handlePostCreation} from "@/controllers/postControllers/postLikeController";  
+import { toggleLikePost } from "@/services/postService";
 
 export async function POST(req) {
   try {
-    return await handlePostCreation(req);  
+    const { userId } = await req.json();  
+    const url = new URL(req.url);
+    const postId = url.pathname.split("/").at(-2);  
+  
+    if (!postId || !userId) {
+      return NextResponse.json({ message: "Invalid data" }, { status: 400 });
+    }
+  
+    const updatedPost = await toggleLikePost(postId, userId);
+    return NextResponse.json(updatedPost, { status: 200 });
   } catch (error) {
-    return new NextResponse(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+    console.error("Error in like handler:", error);
+    return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

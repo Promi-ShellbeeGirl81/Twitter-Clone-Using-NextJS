@@ -23,10 +23,10 @@
 .postMedia {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-width: 50%;
-margin: auto;
+width: 1000px;
+margin-left: 60px;
 }
-.postMedia img {
+.postMedia img , .postMedia  video{
   height: auto;
   width:100%;
   border-radius: 10px;
@@ -37,7 +37,7 @@ margin: auto;
   font-weight: bold;
 }
 .postText {
-  margin-left: 25px;
+  margin-left: 65px;
   margin-bottom: 20px;
   margin-top: 10px;
 }
@@ -49,6 +49,7 @@ margin: auto;
   font-size: 17px;
   margin-bottom: 25px;
   margin-top: 15px;
+  margin-left: 45px;
 }
 .engagement:hover {
   cursor: pointer;
@@ -79,7 +80,8 @@ margin: auto;
   color: green;
   transition: 0.3s ease;
 }
-.en3:hover {
-  color: magenta;
+.en3:hover , .en3 .icon:hover{
+  color: magenta!important;
   transition: 0.3s ease;
 }
+

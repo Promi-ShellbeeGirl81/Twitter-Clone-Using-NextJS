@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { verifyUser } from "@/controllers/emailController";
+import { verifyUser } from "@/controllers/authControllers/emailController";
 
 export async function POST(req) {
   try {

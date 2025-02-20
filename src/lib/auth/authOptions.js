@@ -1,7 +1,7 @@
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
-import * as authController from "../../controllers/authController";
+import * as authController from "../../controllers/authControllers/authController";
 
 export const authOptions = {
   session: {

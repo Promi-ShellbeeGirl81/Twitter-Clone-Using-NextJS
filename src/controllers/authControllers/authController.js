@@ -1,4 +1,4 @@
-import { handleOAuthLogin, authorizeUser } from "../services/authService";
+import { handleOAuthLogin, authorizeUser } from "../../services/authService";
 
 // Handle OAuth login (GitHub/Google)
 export const signIn = async ({ account, profile }) => {

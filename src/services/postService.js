@@ -52,7 +52,6 @@ export async function fetchAllPosts() {
   }
 }
 
-// Service to create a new post, with validation
 export async function createNewPost({ userEmail, postText, postMedia, parentId }) {
   try {
     const user = await User.findOne({ email: userEmail });

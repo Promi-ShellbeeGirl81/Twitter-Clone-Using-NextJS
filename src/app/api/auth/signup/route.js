@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { registerUser } from "../../../../controllers/regController";
+import { registerUser } from "../../../../controllers/authControllers/regController";
 
 export async function POST(req) {
   try {

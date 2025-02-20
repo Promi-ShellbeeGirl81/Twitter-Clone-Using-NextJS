@@ -28,7 +28,6 @@ const NewsFeed = () => {
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
-  /** Fetch user ID */
   const fetchUserId = useCallback(async () => {
     if (!session?.user?.email) return;
     try {
@@ -77,14 +76,18 @@ const NewsFeed = () => {
   const handleLikeClick = async (postId) => {
     if (!userId) return;
   
-    const isLiked = !likedPosts[postId];
-    const updatedLikedPosts = { ...likedPosts, [postId]: isLiked };
+    const isLiked = likedPosts[postId] ?? false;
+    const updatedLikedPosts = { ...likedPosts, [postId]: !isLiked }; // Flip the like status
     setLikedPosts(updatedLikedPosts);
   
+    // Optimistically update the like count
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
         post._id === postId
-          ? { ...post, likeCount: isLiked ? post.likeCount + 1 : post.likeCount - 1 }
+          ? {
+              ...post,
+              likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
+            }
           : post
       )
     );
@@ -99,25 +102,31 @@ const NewsFeed = () => {
       if (!res.ok) throw new Error("Failed to update like status.");
   
       const updatedPost = await res.json();
-      console.log("Updated post:", updatedPost); 
-  
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
-          post._id === postId ? { ...post, ...updatedPost } : post 
+          post._id === postId ? { ...post, ...updatedPost } : post
         )
       );
     } catch (error) {
       console.error(error);
-      setLikedPosts((prevLikedPosts) => ({ ...prevLikedPosts, [postId]: !isLiked }));
+      // Revert the like status if the API request fails
+      setLikedPosts((prevLikedPosts) => ({
+        ...prevLikedPosts,
+        [postId]: isLiked, // revert to previous like status
+      }));
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
           post._id === postId
-            ? { ...post, likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1 }
+            ? {
+                ...post,
+                likeCount: isLiked ? post.likeCount + 1 : post.likeCount - 1,
+              }
             : post
         )
       );
     }
   };
+  
   
   useEffect(() => {
     if (status === "authenticated") fetchUserId();
@@ -252,11 +261,11 @@ const NewsFeed = () => {
                       className={styles.en3}
                       onClick={() => handleLikeClick(_id)}
                       style={{
-                        color: isLiked ? "red" : "rgba(255, 255, 255, 0.5)",
+                        color: isLiked ? "magenta" : "rgba(255, 255, 255, 0.5)",
                       }}
                     >
                       <span className={styles.icon}>
-                        <Heart size={15} fill={isLiked ? "red" : "none"} />
+                        <Heart size={15} fill={isLiked ? "magenta" : "none"} />
                       </span>
                       {likeCount}
                     </span>

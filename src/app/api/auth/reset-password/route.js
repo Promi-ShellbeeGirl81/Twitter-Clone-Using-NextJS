@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { resetPassword } from "../../../../controllers/passwordController";
+import { resetPassword } from "../../../../controllers/authControllers/passwordController";
 
 export async function POST(req) {
   try {
