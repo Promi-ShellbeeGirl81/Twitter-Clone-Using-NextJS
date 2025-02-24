@@ -1,0 +1,26 @@
+"use client";
+
+import { Repeat, Quote } from "lucide-react";
+import styles from "./page.module.css"; 
+
+const RepostModal = ({ modalPosition, onClose, onRepost, onQuote }) => {
+  return (
+    <div
+      className={styles.modal}
+      style={{ top: `${modalPosition.top}px`, left: `${modalPosition.left}px` }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
+    >
+      <div className={styles.modalButton} onClick={onRepost}>
+        <Repeat size={15} /> Repost
+      </div>
+      <div className={styles.modalButton} onClick={onQuote}>
+        <Quote size={15} /> Quote
+      </div>
+    </div>
+  );
+};
+
+export default RepostModal;

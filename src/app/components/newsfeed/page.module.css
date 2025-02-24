@@ -23,15 +23,16 @@
 .postMedia {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-width: 1000px;
-margin-left: 60px;
+  width: 1000px;
+  margin-left: 60px;
 }
-.postMedia img , .postMedia  video{
+.postMedia img,
+.postMedia video {
   height: auto;
-  width:100%;
+  width: 100%;
   border-radius: 10px;
 }
-.extraMedia{
+.extraMedia {
   grid-column: span 2;
   text-align: center;
   font-weight: bold;
@@ -80,8 +81,8 @@ margin-left: 60px;
   color: green;
   transition: 0.3s ease;
 }
-.en3:hover , .en3 .icon:hover{
-  color: magenta!important;
+.en3:hover,
+.en3 .icon:hover {
+  color: magenta !important;
   transition: 0.3s ease;
 }
-

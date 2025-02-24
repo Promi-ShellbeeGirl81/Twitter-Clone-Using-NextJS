@@ -1,6 +1,19 @@
 .postText {
-    text-align: left;
-    margin-top: 15px;
-    margin-bottom: 15px;
-   
-  }
+  text-align: left;
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+
+.postTextSmall {
+  text-align: left;
+  font-size: smaller;
+  margin-bottom: 10px;
+}
+.postTextSmall span {
+  color: rgb(25, 85, 250);
+}
+
+.postSmallTextSection {
+  margin-bottom: 30px;
+  margin-left: 45px;
+}

@@ -8,9 +8,8 @@ import {
   Repeat,
   Heart,
   Eye,
-  Bookmark,
-  Share,
 } from "lucide-react";
+import RepostModal from "@/app/components/RepostModal/page";
 import styles from "../../components/newsfeed/page.module.css";
 import homestyles from "@/app/home/page.module.css";
 import Navbar from "@/app/components/Navbar/page";
@@ -29,6 +28,8 @@ const PostDetails = () => {
   const [error, setError] = useState(null);
   const [replyPopupVisible, setReplyPopupVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const[showModal, setShowModal] = useState(false);
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -78,6 +79,12 @@ const PostDetails = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleModal = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setModalPosition({ top: rect.bottom + window.scrollY, left: rect.left });
+    setShowModal((prev) => !prev);
   };
 
   const handleLikeClick = async (id, isComment = false) => {
@@ -298,13 +305,13 @@ const PostDetails = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles.engagement1}>
-              <span className={styles.en1}>
+              <span className={styles.en1} onClick={(e) => handleReplyClick(e, post)}>
                 <span className={styles.icon}>
                   <MessageCircle size={15} />
                 </span>{" "}
                 {post.replyCount}
               </span>
-              <span className={styles.en2}>
+              <span className={styles.en2} onClick={toggleModal}>
                 <span className={styles.icon}>
                   <Repeat size={15} />
                 </span>{" "}
@@ -406,7 +413,7 @@ const PostDetails = () => {
                     </span>{" "}
                     {comment.replyCount}
                   </span>
-                  <span className={styles.en2}>
+                  <span className={styles.en2} onClick={toggleModal}>
                     <span className={styles.icon}>
                       <Repeat size={15} />
                     </span>{" "}
@@ -441,6 +448,21 @@ const PostDetails = () => {
             </div>
           ))
         )}
+
+{showModal && (
+        <RepostModal
+          modalPosition={modalPosition}
+          onClose={() => setShowModal(false)}
+          onRepost={() => {
+            console.log("Repost action");
+            setShowModal(false);
+          }}
+          onQuote={() => {
+            console.log("Quote action");
+            setShowModal(false);
+          }}
+        />
+      )}
 
         {replyPopupVisible && selectedPost && (
           <ReplyPopup

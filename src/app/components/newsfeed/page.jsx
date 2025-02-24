@@ -7,10 +7,12 @@ import {
   Eye,
   Bookmark,
   Share,
+  Quote,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
 import styles from "./page.module.css";
+import RepostModal from "../RepostModal/page";
 import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -25,11 +27,18 @@ const NewsFeed = () => {
   const [loading, setLoading] = useState(true);
   const [replyPopupVisible, setReplyPopupVisible] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
   const router = useRouter();
 
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
+  const toggleModal = (event) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setModalPosition({ top: rect.bottom + window.scrollY, left: rect.left });
+    setShowModal((prev) => !prev);
+  };
   const fetchUserId = useCallback(async () => {
     if (!session?.user?.email) return;
     try {
@@ -260,7 +269,7 @@ const NewsFeed = () => {
                       </span>
                       {replyCount}
                     </span>
-                    <span className={styles.en2}>
+                    <span className={styles.en2} onClick={toggleModal}>
                       <span className={styles.icon}>
                         <Repeat size={15} />
                       </span>
@@ -293,6 +302,21 @@ const NewsFeed = () => {
               </div>
             );
           })
+      )}
+
+      {showModal && (
+        <RepostModal
+          modalPosition={modalPosition}
+          onClose={() => setShowModal(false)}
+          onRepost={() => {
+            console.log("Repost action");
+            setShowModal(false);
+          }}
+          onQuote={() => {
+            console.log("Quote action");
+            setShowModal(false);
+          }}
+        />
       )}
 
       {replyPopupVisible && selectedPost && (

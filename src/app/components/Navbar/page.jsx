@@ -14,8 +14,6 @@ import {
   CheckCircle,
   Briefcase,
   ListChecks,
-  PenBoxIcon,
-  PenSquare,
   FileEdit,
 } from "lucide-react";
 import styles from "./page.module.css";
