@@ -8,12 +8,14 @@ import {
   Bookmark,
   Share,
 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+
 import styles from "./page.module.css";
 import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation"; 
-import ReplyPopup from "../replyPopup/page"; 
+import { useRouter } from "next/navigation";
+import ReplyPopup from "../replyPopup/page";
 
 const NewsFeed = () => {
   const { data: session, status } = useSession();
@@ -21,9 +23,9 @@ const NewsFeed = () => {
   const [posts, setPosts] = useState([]);
   const [likedPosts, setLikedPosts] = useState({});
   const [loading, setLoading] = useState(true);
-  const [replyPopupVisible, setReplyPopupVisible] = useState(false); 
-  const [selectedPost, setSelectedPost] = useState(null); 
-  const router = useRouter(); 
+  const [replyPopupVisible, setReplyPopupVisible] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const router = useRouter();
 
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
@@ -44,7 +46,7 @@ const NewsFeed = () => {
 
   const fetchPostAndUsers = async (userId) => {
     try {
-      const postRes = await fetch(`/api/posts`); 
+      const postRes = await fetch(`/api/posts`);
       if (!postRes.ok) throw new Error("Failed to fetch posts.");
 
       const postData = await postRes.json();
@@ -75,11 +77,11 @@ const NewsFeed = () => {
 
   const handleLikeClick = async (postId) => {
     if (!userId) return;
-  
+
     const isLiked = likedPosts[postId] ?? false;
     const updatedLikedPosts = { ...likedPosts, [postId]: !isLiked }; // Flip the like status
     setLikedPosts(updatedLikedPosts);
-  
+
     // Optimistically update the like count
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
@@ -91,16 +93,16 @@ const NewsFeed = () => {
           : post
       )
     );
-  
+
     try {
       const res = await fetch(`/api/posts/${postId}/like`, {
         method: "POST",
         body: JSON.stringify({ userId }),
         headers: { "Content-Type": "application/json" },
       });
-  
+
       if (!res.ok) throw new Error("Failed to update like status.");
-  
+
       const updatedPost = await res.json();
       setPosts((prevPosts) =>
         prevPosts.map((post) =>
@@ -126,8 +128,7 @@ const NewsFeed = () => {
       );
     }
   };
-  
-  
+
   useEffect(() => {
     if (status === "authenticated") fetchUserId();
   }, [status, fetchUserId]);
@@ -137,24 +138,25 @@ const NewsFeed = () => {
   };
 
   const handleReplyClick = (event, post) => {
-    event.stopPropagation(); 
-    setSelectedPost(post); 
-    setReplyPopupVisible(true); 
+    event.stopPropagation();
+    setSelectedPost(post);
+    setReplyPopupVisible(true);
   };
 
   const closeReplyPopup = () => {
-    setReplyPopupVisible(false); 
-    setSelectedPost(null); 
+    setReplyPopupVisible(false);
+    setSelectedPost(null);
   };
 
   const handleReplySubmit = (postId) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post._id === postId ? { ...post, replyCount: post.replyCount + 1 } : post
+        post._id === postId
+          ? { ...post, replyCount: post.replyCount + 1 }
+          : post
       )
     );
   };
-  
 
   return (
     <div className={styles.container}>
@@ -176,7 +178,13 @@ const NewsFeed = () => {
               viewCount = 0,
               userName,
               userAvatar,
+              createdAt,
             } = post;
+
+            const createdAtDate = new Date(createdAt);
+            const timeAgo = formatDistanceToNow(createdAtDate, {
+              addSuffix: true,
+            });
 
             const isLiked = likedPosts[_id];
 
@@ -197,6 +205,7 @@ const NewsFeed = () => {
                   <div className={styles.userNames}>
                     <h3>{userName}</h3>
                     <h5>@{userName}</h5>
+                    <h5>@{timeAgo}</h5>
                   </div>
                 </div>
 
@@ -287,7 +296,11 @@ const NewsFeed = () => {
       )}
 
       {replyPopupVisible && selectedPost && (
-        <ReplyPopup post={selectedPost} onClose={closeReplyPopup} onReplySubmit={handleReplySubmit }/>
+        <ReplyPopup
+          post={selectedPost}
+          onClose={closeReplyPopup}
+          onReplySubmit={handleReplySubmit}
+        />
       )}
     </div>
   );

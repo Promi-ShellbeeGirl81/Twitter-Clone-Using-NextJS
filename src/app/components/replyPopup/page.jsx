@@ -88,7 +88,6 @@ const ReplyPopup = ({ post, onClose, onReplySubmit }) => {
         <PostText post={post} />
         <div className={styles.textContainer}>
           <ReplyInput reply={reply} setReply={setReply} session={session} />
-          {/* Make sure FileUpload is correctly receiving filePreview and selectedFile */}
           <FileUpload
             filePreview={filePreview}
             selectedFile={selectedFile}

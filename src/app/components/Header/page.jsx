@@ -18,8 +18,8 @@ const Header = ({ post }) => {
           className={styles.userImage}
         />
         <div className={styles.headerText}>
-          <h3>{post.userName}</h3>
-          <p>@{post.userName}</p>
+          <h3>{post.userId.name}</h3>
+          <p>@{post.userId.name}</p>
           <p>{timeAgo}</p>
         </div>
       </div>
