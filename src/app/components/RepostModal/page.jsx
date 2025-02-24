@@ -3,7 +3,7 @@
 import { Repeat, Quote } from "lucide-react";
 import styles from "./page.module.css"; 
 
-const RepostModal = ({ modalPosition, onClose, onRepost, onQuote }) => {
+const RepostModal = ({ modalPosition, onClose, onRepost, isReposted, onQuote }) => {
   return (
     <div
       className={styles.modal}
@@ -14,7 +14,7 @@ const RepostModal = ({ modalPosition, onClose, onRepost, onQuote }) => {
       }}
     >
       <div className={styles.modalButton} onClick={onRepost}>
-        <Repeat size={15} /> Repost
+        <Repeat size={15} /> {isReposted? "Undo repost": "Repost"}
       </div>
       <div className={styles.modalButton} onClick={onQuote}>
         <Quote size={15} /> Quote

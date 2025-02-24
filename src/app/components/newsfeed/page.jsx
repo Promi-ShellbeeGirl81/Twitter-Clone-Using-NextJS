@@ -29,10 +29,58 @@ const NewsFeed = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+  const [repostedPosts, setRepostedPosts] = useState({});
   const router = useRouter();
 
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
+
+    const handleRepost = async (postId) => {
+      if (!userId) return;
+    
+      const isReposted = repostedPosts[postId] ?? false;
+    
+      // Optimistic UI update
+      setRepostedPosts((prev) => ({ ...prev, [postId]: !isReposted }));
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                repostCount: isReposted ? post.repostCount - 1 : post.repostCount + 1,
+              }
+            : post
+        )
+      );
+    
+      try {
+        const res = await fetch(`/api/posts/${postId}/repost`, {
+          method: "POST",
+          body: JSON.stringify({ userId, undo: isReposted }),
+          headers: { "Content-Type": "application/json" },
+        });
+    
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to update repost status.");
+        }
+      } catch (error) {
+        console.error("Failed to repost:", error);
+        // Revert UI on failure
+        setRepostedPosts((prev) => ({ ...prev, [postId]: isReposted }));
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post._id === postId
+              ? {
+                  ...post,
+                  repostCount: isReposted ? post.repostCount + 1 : post.repostCount - 1,
+                }
+              : post
+          )
+        );
+      }
+    };
+    
 
   const toggleModal = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -68,14 +116,18 @@ const NewsFeed = () => {
         };
       });
 
-      // Map liked posts (optional feature)
       const userLikedPosts = postData.reduce((acc, post) => {
         acc[post._id] = post.likedBy?.includes(userId) || false;
         return acc;
       }, {});
+      const userRepostedPosts = postData.reduce((acc, post) => {
+        acc[post._id] = post.repostedBy?.includes(userId) || false;
+        return acc;
+      }, {});      
 
       setPosts(postsWithUsers);
       setLikedPosts(userLikedPosts);
+      setRepostedPosts(userRepostedPosts);
     } catch (error) {
       console.error("Error fetching posts:", error.message);
       setError("Error fetching data. Please try again later.");
@@ -269,12 +321,28 @@ const NewsFeed = () => {
                       </span>
                       {replyCount}
                     </span>
-                    <span className={styles.en2} onClick={toggleModal}>
+                    <span
+                      className={styles.en2}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPost(post);
+                        toggleModal(e);
+                      }}
+                      style={{
+                        color: repostedPosts[_id]
+                          ? "green"
+                          : "rgba(255, 255, 255, 0.5)",
+                      }}
+                    >
                       <span className={styles.icon}>
-                        <Repeat size={15} />
+                        <Repeat
+                          size={15}
+                          fill={repostedPosts[_id] ? "green" : "none"}
+                        />
                       </span>
                       {repostCount}
                     </span>
+
                     <span
                       className={styles.en3}
                       onClick={() => handleLikeClick(_id)}
@@ -309,9 +377,10 @@ const NewsFeed = () => {
           modalPosition={modalPosition}
           onClose={() => setShowModal(false)}
           onRepost={() => {
-            console.log("Repost action");
+            handleRepost(selectedPost._id);
             setShowModal(false);
           }}
+          isReposted={repostedPosts[selectedPost._id] || false}
           onQuote={() => {
             console.log("Quote action");
             setShowModal(false);
