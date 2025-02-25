@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { findPostById, savePost, getPostById, getCommentsByPostId , getAllPosts, createPost } from "@/repositories/postRepository";
+import { findPostById, savePost, getPostById, getCommentsByPostId , getAllPosts, createPost} from "@/repositories/postRepository";
 import User from "@/models/user";
 
 export const toggleLikePost = async (postId, userId) => {
@@ -9,6 +9,11 @@ export const toggleLikePost = async (postId, userId) => {
     throw new Error("Invalid post or user ID");
   }
 
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+
   const post = await findPostById(postId);
   if (!post) {
     throw new Error("Post not found");
@@ -16,20 +21,22 @@ export const toggleLikePost = async (postId, userId) => {
 
   const likedBy = post.likedBy || [];
 
-  const userIndex = likedBy.indexOf(userId);
+  const userIndex = likedBy.findIndex(id => id.toString() === userId.toString());
+
   if (userIndex === -1) {
     likedBy.push(userId);
-    post.likeCount += 1;
   } else {
     likedBy.splice(userIndex, 1);
-    post.likeCount = Math.max(0, post.likeCount - 1); 
   }
 
   post.likedBy = likedBy;
+  post.likeCount = likedBy.length;
+
   const updatedPost = await savePost(post);
 
   return updatedPost;
 };
+
 
 export async function getPostByIdWithComments(postId) {
   try {

@@ -1,29 +1,51 @@
 import Post from "@/models/post";
 
-export async function handleRepost(postId, userId, undo) {
-  // Fetch the post
+export async function handleRepost(postId, userId, undo, isQuote = false, quoteText = "") {
   const post = await Post.findById(postId);
   if (!post) {
     throw new Error("Post not found");
   }
 
-  // Check if already reposted
-  const alreadyReposted = (post.repostedBy || []).includes(userId);
+  // Check if the user already reposted (regular or quote)
+  const alreadyReposted = post.repostedBy.includes(userId) || post.quotedReposts.some((quote) => quote.userId.toString() === userId);
 
   if (!undo && alreadyReposted) {
-    throw new Error("Already reposted");
+    throw new Error("You have already reposted this post.");
   }
 
   if (undo && !alreadyReposted) {
-    throw new Error("You haven't reposted this post yet");
+    throw new Error("You haven't reposted this post yet.");
   }
 
-  // Update the post
-  const update = undo
-    ? { $inc: { repostCount: -1 }, $pull: { repostedBy: userId } }
-    : { $inc: { repostCount: 1 }, $addToSet: { repostedBy: userId } };
+  // Undo repost logic
+  if (undo) {
+    const update = {
+      $inc: { repostCount: -1 },
+      $pull: { 
+        repostedBy: userId, 
+        quotedReposts: { userId: userId } 
+      }
+    };
+    return await Post.findByIdAndUpdate(postId, update, { new: true });
+  }
 
-  const updatedPost = await Post.findByIdAndUpdate(postId, update, { new: true });
+  // Regular repost
+  if (!isQuote) {
+    const update = {
+      $inc: { repostCount: 1 },
+      $addToSet: { repostedBy: userId }
+    };
+    return await Post.findByIdAndUpdate(postId, update, { new: true });
+  }
 
-  return updatedPost;
+  // Quote repost
+  if (isQuote) {
+    const update = {
+      $inc: { repostCount: 1 },
+      $addToSet: {
+        quotedReposts: { userId: userId, quoteText }
+      }
+    };
+    return await Post.findByIdAndUpdate(postId, update, { new: true });
+  }
 }

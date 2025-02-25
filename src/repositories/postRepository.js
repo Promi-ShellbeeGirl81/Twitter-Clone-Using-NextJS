@@ -31,13 +31,16 @@ export async function getPostById(postId) {
 
   export async function getAllPosts() {
     try {
-      const posts = await Post.find().populate("userId", "name avatar");
-      return posts;
+      return await Post.find({})
+        .populate("userId", "name avatar")
+        .populate("originalPostId", "postText userId postMedia")
+        .exec();
     } catch (error) {
-      console.error("Error fetching posts:", error);
+      console.error("Error in getAllPosts:", error);
       throw new Error("Error fetching posts");
     }
-  }
+  }  
+
   
   export async function createPost(postData) {
     try {

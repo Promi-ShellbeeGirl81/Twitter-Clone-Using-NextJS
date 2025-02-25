@@ -20,6 +20,16 @@ const PostSchema = new Schema(
       ref: "Post",
       default: null,
     },
+    originalPostId: {
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+      default: null, 
+    },
+    isQuote: {
+      type: Boolean,
+      default: false, 
+    },
+    repostedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
     replyCount: {
       type: Number,
       default: 0,
@@ -28,11 +38,6 @@ const PostSchema = new Schema(
       type: Number,
       default: 0,
     },
-    repostedBy: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: "User",
-      default: [], 
-    },    
     likeCount: {
       type: Number,
       default: 0,
