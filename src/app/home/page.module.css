@@ -1,16 +1,17 @@
-body{
-    margin: 0 70px;
-}
+
 .container{
     display: flex;
     justify-content: space-around;
-   
+    background-color: black;
+    color: white;
 }
 .leftcontainer{
     margin-left: 70px;
 }
 .middlecontainer{
     width: 600px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 .rightcontainer{
     width: 100px;

@@ -9,6 +9,7 @@ import FollowButton from "../components/FollowButton/page";
 import StatusUpdate from "../components/StatusUpdate/page";
 import NewsFeed from "../components/newsfeed/page";
 
+
 export default function HomePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
