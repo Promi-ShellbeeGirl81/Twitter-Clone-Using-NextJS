@@ -1,9 +1,20 @@
+"use client"; // Ensures this component only runs on the client side
+
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import styles from "./page.module.css";
-const FileUpload = ({ filePreview = [], selectedFile = [], onFileChange }) => {
-  const displayedFiles = (filePreview || []).slice(0, 4);
-const additionalFilesCount = (filePreview || []).length - 4;
 
+const FileUpload = ({ filePreview = [], selectedFile = [], onFileChange }) => {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) return null; // Prevents server-side rendering issues
+
+  const displayedFiles = filePreview.slice(0, 4);
+  const additionalFilesCount = Math.max(0, filePreview.length - 4);
 
   return (
     <div className={styles.filePreview}>
@@ -15,11 +26,12 @@ const additionalFilesCount = (filePreview || []).length - 4;
         style={{ display: "none" }}
         multiple
       />
-      {filePreview?.length > 0 && (
+      {filePreview.length > 0 && (
         <div className={styles.imageGrid}>
           {displayedFiles.map((filePreviewSingle, index) => {
             const file = selectedFile[index];
-            if (file && file.type.startsWith("image/")) {
+
+            if (file?.type?.startsWith("image/")) {
               return (
                 <div key={index} className={styles.previewItem}>
                   <Image
@@ -31,7 +43,9 @@ const additionalFilesCount = (filePreview || []).length - 4;
                   />
                 </div>
               );
-            } else if (file && file.type.startsWith("video/")) {
+            }
+
+            if (file?.type?.startsWith("video/")) {
               return (
                 <div key={index} className={styles.previewItem}>
                   <video controls width={100}>
@@ -40,6 +54,7 @@ const additionalFilesCount = (filePreview || []).length - 4;
                 </div>
               );
             }
+
             return null;
           })}
         </div>
