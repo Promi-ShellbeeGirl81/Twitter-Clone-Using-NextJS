@@ -1,4 +1,4 @@
-"use client"; // Ensures this component only runs on the client side
+"use client"; 
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
@@ -11,8 +11,7 @@ const FileUpload = ({ filePreview = [], selectedFile = [], onFileChange }) => {
     setIsClient(true);
   }, []);
 
-  if (!isClient) return null; // Prevents server-side rendering issues
-
+  if (!isClient) return null; 
   const displayedFiles = filePreview.slice(0, 4);
   const additionalFilesCount = Math.max(0, filePreview.length - 4);
 
