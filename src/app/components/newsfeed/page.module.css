@@ -86,3 +86,13 @@
   color: magenta !important;
   transition: 0.3s ease;
 }
+
+.originalPost{
+  margin: 0 10px;
+  padding: 0 30px;
+}
+.postImage2{
+  height: auto;
+  width: 90%;
+ margin-left: 40px;
+}

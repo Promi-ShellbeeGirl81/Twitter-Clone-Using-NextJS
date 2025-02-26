@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GET  as getPostsById} from "@/controllers/postControllers/postController"; 
+import { GET  as getPostsById} from "@/controllers/postControllers/postCommentController"; 
 
 export async function GET(req, { params }) {
   try {

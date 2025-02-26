@@ -17,6 +17,7 @@ import Sidebar from "@/app/components/Sidebar/page";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ReplyPopup from "@/app/components/replyPopup/page";
+import QuotePopup from "@/app/components/QuotePopup/page";
 
 const PostDetails = () => {
   const { postId } = useParams();
@@ -30,6 +31,9 @@ const PostDetails = () => {
   const [selectedPost, setSelectedPost] = useState(null);
   const[showModal, setShowModal] = useState(false);
   const [modalPosition, setModalPosition] = useState({ top: 0, left: 0 });
+  const [quotePopupVisible, setQuotePopupVisible] = useState(false);
+  const [quotePost, setQuotePost] = useState(null);
+  const [repostedPosts, setRepostedPosts] = useState({});
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -51,36 +55,136 @@ const PostDetails = () => {
   }, [session]);
 
   const fetchPostAndUsers = async (userId) => {
+    if (!userId) {
+      console.error("No valid user ID provided for fetching posts.");
+      return;
+    }
+  
     try {
       const postRes = await fetch(`/api/posts`);
       if (!postRes.ok) throw new Error("Failed to fetch posts.");
-
+  
       const postData = await postRes.json();
-
-      const postsWithUsers = postData.map((post) => {
-        return {
-          ...post,
-          userName: post.userId?.name || "Unknown",
-          userAvatar: post.userId?.avatar?.trim() || defaultImage,
-        };
-      });
-
-      // Map liked posts (optional feature)
-      const userLikedPosts = postData.reduce((acc, post) => {
-        acc[post._id] = post.likedBy?.includes(userId) || false;
-        return acc;
-      }, {});
-
+  
+      // Fetching post and mapping original post details if it's a repost
+      const postsWithUsers = await Promise.all(
+        postData.map(async (post) => {
+          let originalPost = null;
+  
+          // If post has an originalPostId, fetch its data and original user's details
+          if (post.originalPostId) {
+            try {
+              const originalPostData = post.originalPostId;
+              const originalUserId = originalPostData.userId;
+              console.log("originalUserId: " + originalUserId);
+  
+              if (originalUserId) {
+                // Fetch the user details of the original post
+                const originalUserRes = await fetch(`/api/users/${originalUserId}`);
+                if (!originalUserRes.ok) throw new Error(`Failed to fetch user for original post.`);
+                const originalUser = await originalUserRes.json();
+  
+                // Assign original post's details including user's name, avatar, and media
+                originalPost = {
+                  ...originalPostData,
+                  userName: originalUser.name || "Unknown",
+                  userAvatar: originalUser.avatar || defaultImage,
+                  postMedia: originalPostData.postMedia || [],
+                };
+              }
+            } catch (error) {
+              console.error("Error fetching original post user:", error.message);
+              originalPost = {
+                ...post.originalPostId,
+                userName: "Unknown",
+                userAvatar: defaultImage,
+                postMedia: post.originalPostId?.postMedia || [],
+              };
+            }
+          }
+  
+          // Fetching the user details for the current post's use
+          const userRes = await fetch(`/api/users/${post.userId._id}`);
+          if (!userRes.ok) throw new Error(`Failed to fetch user for post.`);
+          const user = await userRes.json();
+  
+          return {
+            ...post,
+            userName: user.name || "Unknown",
+            userAvatar: user.avatar || defaultImage,
+            originalPost, // originalPost will be null or populated based on originalPostId
+          };
+        })
+      );
+  
       setPosts(postsWithUsers);
-      setLikedPosts(userLikedPosts);
     } catch (error) {
-      console.error("Error fetching posts:", error.message);
-      setError("Error fetching data. Please try again later.");
+      console.error("Error fetching posts and users:", error.message);
     } finally {
       setLoading(false);
     }
   };
+  const handleRepost = async (postId) => {
+    console.log("User and post:", userId, "and", postId);
 
+    if (!userId || !postId) {
+      console.error("Error: Missing userId or postId for repost.");
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/posts/repost`, {
+        method: "POST",
+        body: JSON.stringify({ 
+          userId, 
+          postId, 
+          isQuote: false, 
+          quoteText: "",  
+          postMedia: []   
+        }),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      console.log("Response:", res);
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to repost.");
+      }
+
+      const responseData = await res.json();
+
+      if (responseData.message.includes("Undo repost successful")) {
+        setRepostedPosts((prev) => ({ ...prev, [postId]: false }));
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post._id === postId
+              ? { ...post, repostCount: Math.max(post.repostCount - 1, 0) }
+              : post
+          )
+        );
+      } else if (responseData.message.includes("Repost successful")) {
+        setRepostedPosts((prev) => ({ ...prev, [postId]: true }));
+        setPosts((prevPosts) =>
+          prevPosts.map((post) =>
+            post._id === postId
+              ? { ...post, repostCount: post.repostCount + 1 }
+              : post
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Repost Error:", error);
+    }
+};
+  const handleQuoteClick = (post) => {
+    if (!userId) {
+      console.error("Error: Missing userId for quote repost.");
+      return;
+    }
+    setQuotePost(post);
+    setQuotePopupVisible(true);
+  };    
   const toggleModal = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
     setModalPosition({ top: rect.bottom + window.scrollY, left: rect.left });
@@ -240,7 +344,9 @@ const PostDetails = () => {
     setReplyPopupVisible(false);
     setSelectedPost(null);
   };
+  
   const post = posts.find((p) => p._id === postId);
+  const originalPost = post?.originalPost;
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
@@ -299,6 +405,37 @@ const PostDetails = () => {
             </div>
           )}
 
+{originalPost && (
+  <div className={styles.originalPost}>
+    <div className={styles.userInfo}>
+      <Image
+        src={originalPost.userAvatar}
+        width={30}
+        height={30}
+        alt="Original user avatar"
+      />
+      <div className={styles.userNames}>
+        <h4>{originalPost.userName}</h4>
+      </div>
+    </div>
+
+    {/* Original Post Text */}
+    <p>{originalPost.postText || ""}</p>
+
+    {/* Original Post Media */}
+    {originalPost.postMedia && originalPost.postMedia.length > 0 && (
+      <Image
+        src={originalPost.postMedia[0]}
+        width={600}
+        height={300}
+        alt="Original post media"
+        className={styles.postImage2}
+      />
+    )}
+  </div>
+)}
+
+
           {/* Engagement Section */}
           <div
             className={styles.engagement}
@@ -311,12 +448,27 @@ const PostDetails = () => {
                 </span>{" "}
                 {post.replyCount}
               </span>
-              <span className={styles.en2} onClick={toggleModal}>
-                <span className={styles.icon}>
-                  <Repeat size={15} />
-                </span>{" "}
-                {post.repostCount}
-              </span>
+              <span
+                      className={styles.en2}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPost(post); 
+                        toggleModal(e); 
+                      }}
+                      style={{
+                        color: repostedPosts[post._id]
+                          ? "green"
+                          : "rgba(255, 255, 255, 0.5)",
+                      }}
+                    >
+                      <span className={styles.icon}>
+                        <Repeat
+                          size={15}
+                          fill={repostedPosts[post._id] ? "green" : "none"}
+                        />
+                      </span>
+                      {post.repostCount}
+                    </span>
               <span
                 className={styles.en3}
                 onClick={() => handleLikeClick(post._id)} 
@@ -413,12 +565,27 @@ const PostDetails = () => {
                     </span>{" "}
                     {comment.replyCount}
                   </span>
-                  <span className={styles.en2} onClick={toggleModal}>
-                    <span className={styles.icon}>
-                      <Repeat size={15} />
-                    </span>{" "}
-                    {comment.repostCount}
-                  </span>
+                  <span
+                      className={styles.en2}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPost(comment); 
+                        toggleModal(e); 
+                      }}
+                      style={{
+                        color: repostedPosts[comment._id]
+                          ? "green"
+                          : "rgba(255, 255, 255, 0.5)",
+                      }}
+                    >
+                      <span className={styles.icon}>
+                        <Repeat
+                          size={15}
+                          fill={repostedPosts[comment._id] ? "green" : "none"}
+                        />
+                      </span>
+                      {comment.repostCount}
+                    </span>
                   <span
                     className={styles.en3}
                     onClick={() => handleLikeClick(comment._id, true)} // Pass true for comment
@@ -454,13 +621,21 @@ const PostDetails = () => {
           modalPosition={modalPosition}
           onClose={() => setShowModal(false)}
           onRepost={() => {
-            console.log("Repost action");
+            handleRepost(selectedPost._id);
             setShowModal(false);
           }}
+          isReposted={repostedPosts[selectedPost._id] || false}
           onQuote={() => {
-            console.log("Quote action");
+            handleQuoteClick(selectedPost);
             setShowModal(false);
           }}
+        />
+      )}
+       {quotePopupVisible && quotePost && (
+        <QuotePopup
+          post={quotePost}
+          onClose={() => setQuotePopupVisible(false)}
+          onQuoteSubmit={handleReplySubmit}
         />
       )}
 

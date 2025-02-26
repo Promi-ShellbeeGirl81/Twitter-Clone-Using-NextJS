@@ -39,51 +39,69 @@ const NewsFeed = () => {
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
-  const handleQuoteClick = (post) => {
-    setQuotePost(post);
-    setQuotePopupVisible(true);
-  };
-
-  const handleRepost = async (postId) => {
-    if (!userId) return;
-
-    try {
-      const res = await fetch(`/api/posts`, {
-        method: "POST",
-        body: JSON.stringify({ userId, postId, isQuote: false }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to repost.");
+    const handleQuoteClick = (post) => {
+      if (!userId) {
+        console.error("Error: Missing userId for quote repost.");
+        return;
       }
+      setQuotePost(post);
+      setQuotePopupVisible(true);
+    };    
 
-      const responseData = await res.json();
-
-      if (responseData.message.includes("Undo repost successful")) {
-        setRepostedPosts((prev) => ({ ...prev, [postId]: false }));
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId
-              ? { ...post, repostCount: Math.max(post.repostCount - 1, 0) }
-              : post
-          )
-        );
-      } else if (responseData.message.includes("Repost successful")) {
-        setRepostedPosts((prev) => ({ ...prev, [postId]: true }));
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId
-              ? { ...post, repostCount: post.repostCount + 1 }
-              : post
-          )
-        );
+    const handleRepost = async (postId) => {
+      console.log("User and post:", userId, "and", postId);
+  
+      if (!userId || !postId) {
+        console.error("Error: Missing userId or postId for repost.");
+        return;
       }
-    } catch (error) {
-      console.error("Repost Error:", error);
-    }
+  
+      try {
+        const res = await fetch(`/api/posts/repost`, {
+          method: "POST",
+          body: JSON.stringify({ 
+            userId, 
+            postId, 
+            isQuote: false, 
+            quoteText: "",  
+            postMedia: []   
+          }),
+          headers: { "Content-Type": "application/json" },
+        });
+  
+        console.log("Response:", res);
+  
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to repost.");
+        }
+  
+        const responseData = await res.json();
+  
+        if (responseData.message.includes("Undo repost successful")) {
+          setRepostedPosts((prev) => ({ ...prev, [postId]: false }));
+          setPosts((prevPosts) =>
+            prevPosts.map((post) =>
+              post._id === postId
+                ? { ...post, repostCount: Math.max(post.repostCount - 1, 0) }
+                : post
+            )
+          );
+        } else if (responseData.message.includes("Repost successful")) {
+          setRepostedPosts((prev) => ({ ...prev, [postId]: true }));
+          setPosts((prevPosts) =>
+            prevPosts.map((post) =>
+              post._id === postId
+                ? { ...post, repostCount: post.repostCount + 1 }
+                : post
+            )
+          );
+        }
+      } catch (error) {
+        console.error("Repost Error:", error);
+      }
   };
+  
 
   const toggleModal = (event) => {
     const rect = event.currentTarget.getBoundingClientRect();
@@ -275,7 +293,7 @@ const NewsFeed = () => {
         <p>No posts available</p>
       ) : (
         posts
-          .filter((post) => post.parentId === null) // Filter posts to show only root posts
+          .filter((post) => post.parentId === null) 
           .map((post) => {
             const {
               _id,
@@ -349,7 +367,7 @@ const NewsFeed = () => {
         width={600}
         height={300}
         alt="Original post media"
-        className={styles.postImage}
+        className={styles.postImage2}
       />
     )}
   </div>
@@ -408,8 +426,8 @@ const NewsFeed = () => {
                       className={styles.en2}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedPost(post); // Set the post to be reposted
-                        toggleModal(e); // Open the modal
+                        setSelectedPost(post); 
+                        toggleModal(e); 
                       }}
                       style={{
                         color: repostedPosts[_id]
