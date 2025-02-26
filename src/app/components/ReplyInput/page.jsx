@@ -1,3 +1,4 @@
+"use client";
 import styles from "../replyPopup/page.module.css";
 import Image from "next/image";
 const ReplyInput = ({ reply, setReply, session }) => {
