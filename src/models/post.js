@@ -9,7 +9,7 @@ const PostSchema = new Schema(
     },
     postText: {
       type: String,
-      default: " ",
+      default: "",
     },
     postMedia: {
       type: [String],
@@ -29,7 +29,10 @@ const PostSchema = new Schema(
       type: Boolean,
       default: false, 
     },
-    repostedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
+    repostedBy: {
+      type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      default: [],
+    },
     replyCount: {
       type: Number,
       default: 0,
@@ -42,21 +45,18 @@ const PostSchema = new Schema(
       type: Number,
       default: 0,
     },
-    likedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User", default: [] }],
+    likedBy: {
+      type: [{ type: Schema.Types.ObjectId, ref: "User" }],
+      default: [],
+    },
     viewCount: {
       type: Number,
       default: 0,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
+    replies: {
+      type: [{ type: Schema.Types.ObjectId, ref: "Post" }],
+      default: [],
     },
-    replies: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Post",
-      },
-    ],
   },
   { timestamps: true }
 );
