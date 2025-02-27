@@ -13,7 +13,6 @@ export async function POST(req) {
       const updatedPost = await toggleLikePost(postId, userId);
       return NextResponse.json(updatedPost, { status: 200 });
     } catch (error) {
-      console.error("Error in like handler:", error);
       return NextResponse.json({ message: error.message }, { status: 500 });
     }
   }

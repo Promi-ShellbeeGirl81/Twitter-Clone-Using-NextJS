@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function PasswordReset() {
-  const [step, setStep] = useState("email"); 
+  const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -18,10 +18,6 @@ export default function PasswordReset() {
     const urlParams = new URLSearchParams(window.location.search);
     const tokenFromUrl = urlParams.get("token");
     const emailFromUrl = urlParams.get("email");
-
-    console.log("URL Params:", urlParams);
-    console.log("Token:", tokenFromUrl);
-    console.log("Email:", emailFromUrl);
 
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
@@ -47,12 +43,11 @@ export default function PasswordReset() {
       if (!res.ok) {
         setError(data.message || "Failed to send reset email");
       } else {
-        setStep("emailSent"); 
+        setStep("emailSent");
         router.push("/login");
       }
     } catch (error) {
       setError("Error sending reset email");
-      console.error(error);
     } finally {
       setPending(false);
     }
@@ -75,10 +70,8 @@ export default function PasswordReset() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, token, password }),
       });
-      console.log("Request body:", { email, token, password });
 
       const data = await res.json();
-      console.log("Server Response:", data);
       if (res.ok) {
         router.push("/login");
       } else {
@@ -86,7 +79,6 @@ export default function PasswordReset() {
       }
     } catch (error) {
       setError("Error resetting password");
-      console.error(error);
     } finally {
       setPending(false);
     }
@@ -120,7 +112,7 @@ export default function PasswordReset() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                disabled={pending} 
+                disabled={pending}
               />
               {error && <p className={styles.error}>{error}</p>}
             </div>
@@ -128,7 +120,7 @@ export default function PasswordReset() {
               <button
                 className={ownstyles.nextButton}
                 type="submit"
-                disabled={!email || pending} 
+                disabled={!email || pending}
               >
                 {pending ? "Sending..." : "Submit"}
               </button>
@@ -151,7 +143,7 @@ export default function PasswordReset() {
                 value={email}
                 readOnly
                 disabled
-                className={styles.readOnlyInput} 
+                className={styles.readOnlyInput}
               />
             </div>
             <div className={styles.formGroup}>

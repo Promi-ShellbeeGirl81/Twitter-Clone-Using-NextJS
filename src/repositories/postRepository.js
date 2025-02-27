@@ -14,7 +14,7 @@ export async function getPostById(postId) {
     await connectToDatabase();
     return await Post.findById(postId)
       .populate("userId", "name avatar") 
-      .populate("likedBy", "name avatar"); // ✅ Ensure likedBy is populated
+      .populate("likedBy", "name avatar"); 
   } catch (error) {
     console.error("Error fetching post from DB:", error);
     throw new Error("Error fetching post");

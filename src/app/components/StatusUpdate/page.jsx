@@ -24,10 +24,18 @@ function StatusUpdate() {
   }, [session, status, router]);
 
   if (status === "loading") {
-    return <div><h1>Loading ...</h1></div>;
+    return (
+      <div>
+        <h1>Loading ...</h1>
+      </div>
+    );
   }
   if (!session) {
-    return <div><h1>Please log in...</h1></div>;
+    return (
+      <div>
+        <h1>Please log in...</h1>
+      </div>
+    );
   }
 
   const handleFileUpload = (event) => {
@@ -44,49 +52,50 @@ function StatusUpdate() {
       alert("Post can't be empty");
       return;
     }
-  
+
     setUploading(true);
     let uploadedMedia = [];
-  
+
     try {
       const res = await fetch(`/api/users/email/${session?.user?.email}`);
       const user = await res.json();
       if (!user || !user._id) throw new Error("User not found");
-  
-      // You need to send the email instead of userId to match the API request
+
       const userEmail = session?.user?.email;
-  
+
       if (selectedFile.length > 0) {
         for (let file of selectedFile) {
           const formData = new FormData();
           formData.append("file", file);
-          formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
-  
+          formData.append(
+            "upload_preset",
+            process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+          );
+
           const uploadRes = await fetch(
             `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
             { method: "POST", body: formData }
           );
-  
+
           const data = await uploadRes.json();
           if (data.secure_url) {
             uploadedMedia.push(data.secure_url);
           }
         }
       }
-  
-      // Send the correct payload to the API (use userEmail instead of userId)
+
       const postResponse = await fetch("/api/posts", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userEmail, // Use userEmail here
+          userEmail,
           postText: postText.trim(),
           postMedia: uploadedMedia,
         }),
       });
-  
+
       if (!postResponse.ok) throw new Error("Failed to post");
-  
+
       setPostText("");
       setSelectedFile([]);
       setFilePreview([]);
@@ -95,7 +104,7 @@ function StatusUpdate() {
       console.log("Error posting:", error);
       setUploading(false);
     }
-  };  
+  };
 
   return (
     <div className={`${styles.container} ${isActive ? styles.active : ""}`}>

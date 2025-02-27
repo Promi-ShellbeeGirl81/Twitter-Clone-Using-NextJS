@@ -14,10 +14,9 @@ const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
   const [selectedFile, setSelectedFile] = useState([]);
   const [filePreview, setFilePreview] = useState([]);
   const [hasReposted, setHasReposted] = useState(false);
-  const [userId, setUserId] = useState(null); // 🔑 Store user ID
+  const [userId, setUserId] = useState(null); 
   const { data: session } = useSession();
 
-  // ✅ Fetch user ID from email when session loads
   useEffect(() => {
     const fetchUserId = async () => {
       if (session?.user?.email) {
@@ -28,8 +27,6 @@ const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
             throw new Error("User ID not found.");
           }
           setUserId(data._id);
-
-          // ✅ Check if the user has already reposted
           if (post.repostedBy.includes(data._id)) {
             setHasReposted(true);
           }
@@ -42,7 +39,6 @@ const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
     fetchUserId();
   }, [session, post]);
 
-  // ✅ File upload handler
   const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
     if (files.length > 0) {
@@ -52,8 +48,6 @@ const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
     }
   };
 
-  // ✅ Handle repost/quote submission
-  // ✅ Handle repost/quote submission
 const handleRepostAction = async () => {
   try {
     if (!userId) {
@@ -63,7 +57,6 @@ const handleRepostAction = async () => {
 
     let uploadedMedia = [];
 
-    // ✅ Upload media if present
     if (selectedFile.length > 0) {
       for (let file of selectedFile) {
         const formData = new FormData();
@@ -82,7 +75,6 @@ const handleRepostAction = async () => {
       }
     }
 
-    // ✅ Send repost/quote request to backend
     const res = await fetch(`/api/posts/repost`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -98,14 +90,12 @@ const handleRepostAction = async () => {
     const responseData = await res.json();
     if (!res.ok) throw new Error(responseData.error || "Repost action failed.");
 
-    // ✅ Update repost state
     if (responseData.message.includes("Undo repost successful")) {
       setHasReposted(false);
     } else {
       setHasReposted(true);
     }
 
-    // ✅ Reset form and close popup
     onQuoteSubmit(post._id);
     setReply("");
     setSelectedFile([]);

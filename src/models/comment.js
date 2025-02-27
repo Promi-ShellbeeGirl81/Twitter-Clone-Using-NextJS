@@ -42,7 +42,7 @@ const CommentSchema = new Schema({
   }],
   reposts: [{
     type: Schema.Types.ObjectId,
-    ref: "User", // User who reposted the comment
+    ref: "User", 
   }],
   createdAt: {
     type: Date,

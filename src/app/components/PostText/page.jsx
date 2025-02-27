@@ -1,7 +1,7 @@
 import styles from "./page.module.css";
 
 const PostText = ({ post }) => {
-  if (!post) return <p>Loading...</p>; // Handle undefined post gracefully
+  if (!post) return <p>Loading...</p>; 
 
   return (
     <div>

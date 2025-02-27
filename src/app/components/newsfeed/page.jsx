@@ -65,12 +65,10 @@ const NewsFeed = () => {
 
       const postData = await postRes.json();
 
-      // Fetching post and mapping original post details if it's a repost
       const postsWithUsers = await Promise.all(
         postData.map(async (post) => {
           let originalPost = null;
 
-          // If post has an originalPostId, fetch its data and original user's details
           if (post.originalPostId) {
             try {
               const originalPostData = post.originalPostId;
@@ -78,15 +76,12 @@ const NewsFeed = () => {
               console.log("originalUserId: " + originalUserId);
 
               if (originalUserId) {
-                // Fetch the user details of the original post
                 const originalUserRes = await fetch(
                   `/api/users/${originalUserId}`
                 );
                 if (!originalUserRes.ok)
                   throw new Error(`Failed to fetch user for original post.`);
                 const originalUser = await originalUserRes.json();
-
-                // Assign original post's details including user's name, avatar, and media
                 originalPost = {
                   ...originalPostData,
                   userName: originalUser.name || "Unknown",
@@ -107,8 +102,6 @@ const NewsFeed = () => {
               };
             }
           }
-
-          // Fetching the user details for the current post's use
           const userRes = await fetch(`/api/users/${post.userId._id}`);
           if (!userRes.ok) throw new Error(`Failed to fetch user for post.`);
           const user = await userRes.json();
@@ -117,12 +110,11 @@ const NewsFeed = () => {
             ...post,
             userName: user.name || "Unknown",
             userAvatar: user.avatar || defaultImage,
-            originalPost, // originalPost will be null or populated based on originalPostId
+            originalPost, 
           };
         })
       );
 
-      // Map liked posts (optional feature)
       const userLikedPosts = postData.reduce((acc, post) => {
         acc[post._id] = post.likedBy?.includes(userId) || false;
         return acc;
@@ -365,10 +357,7 @@ const NewsFeed = () => {
                       </div>
                     </div>
 
-                    {/* Original Post Text */}
                     <p>{originalPost.postText || ""}</p>
-
-                    {/* Original Post Media */}
                     {originalPost.postMedia &&
                       originalPost.postMedia.length > 0 && (
                         <Image

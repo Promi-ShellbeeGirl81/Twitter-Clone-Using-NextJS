@@ -14,7 +14,6 @@ export async function GET(req) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error fetching posts:", error);
     return new NextResponse(JSON.stringify({ message: error.message }), { status: 500 });
   }
 }
@@ -34,7 +33,6 @@ export async function POST(req) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    console.error("Error creating post:", error);
     return new NextResponse(JSON.stringify({ message: error.message }), { status: 500 });
   }
 }

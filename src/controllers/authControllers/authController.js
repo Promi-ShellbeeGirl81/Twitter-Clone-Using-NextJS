@@ -1,6 +1,5 @@
 import { handleOAuthLogin, authorizeUser } from "../../services/authService";
 
-// Handle OAuth login (GitHub/Google)
 export const signIn = async ({ account, profile }) => {
   if (account.provider === "github" || account.provider === "google") {
     const user = await handleOAuthLogin(account, profile);
@@ -13,7 +12,6 @@ export const signIn = async ({ account, profile }) => {
   return true;
 };
 
-// JWT callback logic to store user data
 export const jwt = async ({ token, user }) => {
   if (user) {
     token.id = user._id;
@@ -24,7 +22,6 @@ export const jwt = async ({ token, user }) => {
   return token;
 };
 
-// Session callback logic to persist user data
 export const session = async ({ session, token }) => {
   if (token) {
     session.user = {
@@ -36,7 +33,6 @@ export const session = async ({ session, token }) => {
   return session;
 };
 
-// Handle credential-based user authorization
 export const authorize = async (credentials) => {
   return await authorizeUser(credentials);
 };

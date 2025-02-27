@@ -37,11 +37,8 @@ export const registerUser = async ({ name, email, dateOfBirth, password }) => {
 
     await newUser.save();
 
-    console.log('New user created:', newUser);
-
     return { message: "User created successfully, please log in" };
   } catch (error) {
-    console.error('Error during registration:', error);
     throw new Error(error.message);
   }
 };

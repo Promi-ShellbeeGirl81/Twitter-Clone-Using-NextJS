@@ -4,7 +4,7 @@ import { Repeat, Quote } from "lucide-react";
 import styles from "./page.module.css"; 
 
 const RepostModal = ({ modalPosition = { top: 0, left: 0 }, onClose, onRepost, isReposted, onQuote }) => {
-  if (!modalPosition) return null; // Prevent error if modalPosition is undefined
+  if (!modalPosition) return null;
 
   return (
     <div

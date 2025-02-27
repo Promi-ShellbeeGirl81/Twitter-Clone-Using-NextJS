@@ -2,7 +2,6 @@ import { connectToDatabase } from "../lib/mongodb";
 import User from "../models/user";
 import bcrypt from "bcryptjs";
 
-// Fetch or create user from OAuth
 export const getUserFromOAuth = async (account, profile) => {
   await connectToDatabase();
 
@@ -24,7 +23,6 @@ export const getUserFromOAuth = async (account, profile) => {
   return existingUser;
 };
 
-// Validate credentials for username or email/password login
 export const getUserByCredentials = async (credentials) => {
   await connectToDatabase();
 
