@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { findPostById, savePost, getPostById, getCommentsByPostId , getAllPosts, createPost} from "@/repositories/postRepository";
 import User from "@/models/user";
+import Post from "@/models/post";
 
 export const toggleLikePost = async (postId, userId) => {
   console.log("toggleLikePost called with:", { postId, userId });
@@ -19,24 +20,19 @@ export const toggleLikePost = async (postId, userId) => {
     throw new Error("Post not found");
   }
 
-  const likedBy = post.likedBy || [];
+  const isLiked = post.likedBy.includes(userId);
 
-  const userIndex = likedBy.findIndex(id => id.toString() === userId.toString());
-
-  if (userIndex === -1) {
-    likedBy.push(userId);
-  } else {
-    likedBy.splice(userIndex, 1);
-  }
-
-  post.likedBy = likedBy;
-  post.likeCount = likedBy.length;
-
-  const updatedPost = await savePost(post);
+  const updatedPost = await Post.findByIdAndUpdate(
+    postId,
+    {
+      [isLiked ? "$pull" : "$addToSet"]: { likedBy: userId },
+      $set: { likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1 },
+    },
+    { new: true }
+  );
 
   return updatedPost;
 };
-
 
 export async function getPostByIdWithComments(postId) {
   try {

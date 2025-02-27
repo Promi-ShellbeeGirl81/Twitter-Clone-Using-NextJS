@@ -1,8 +1,11 @@
+import { connectToDatabase } from "@/lib/mongodb"; 
 import User from "@/models/user";
 
 export async function getUserByEmail(email) {
   try {
-    const user = await User.findOne({ email });
+    await connectToDatabase(); 
+
+    const user = await User.findOne({ email }).lean(); 
     if (!user) {
       return { status: 404, data: { message: "User not found" } };
     }

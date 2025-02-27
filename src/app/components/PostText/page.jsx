@@ -5,9 +5,9 @@ const PostText = ({ post }) => {
 
   return (
     <div>
-      <p className={styles.postText}>{post?.postText || "No text available"}</p>
+      <p className={styles.postText}>{post?.postText || ""}</p>
       <div className={styles.postSmallTextSection}>
-        <p className={styles.postTextSmall}>{post?.postMedia?.join(", ") || "No media"}</p>
+        <p className={styles.postTextSmall}>{post?.postMedia?.join(", ") || ""}</p>
         <p className={styles.postTextSmall}>
           Replying to <span>@{post?.userId?.name || "Unknown"}</span>
         </p>

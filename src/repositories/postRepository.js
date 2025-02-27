@@ -10,15 +10,16 @@ export const savePost = async (post) => {
 };
 
 export async function getPostById(postId) {
-    try {
-      await connectToDatabase();
-      return await Post.findById(postId).populate("userId"); 
-    } catch (error) {
-      console.error("Error fetching post from DB:", error);
-      throw new Error("Error fetching post");
-    }
+  try {
+    await connectToDatabase();
+    return await Post.findById(postId)
+      .populate("userId", "name avatar") 
+      .populate("likedBy", "name avatar"); // ✅ Ensure likedBy is populated
+  } catch (error) {
+    console.error("Error fetching post from DB:", error);
+    throw new Error("Error fetching post");
   }
-  
+}
   export async function getCommentsByPostId(postId) {
     try {
       await connectToDatabase();
