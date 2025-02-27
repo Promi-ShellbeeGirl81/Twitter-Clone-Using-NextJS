@@ -13,6 +13,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ReplyPopup from "@/app/components/replyPopup/page";
 import QuotePopup from "@/app/components/QuotePopup/page";
+import {
+  fetchPostAndCommentsApi,
+  fetchPosts,
+  repostPost,
+  updateLikeStatus,
+} from "@/utils/api/postApi";
+import { fetchUserIdByEmail, fetchUserById } from "@/utils/api/userApi";
 
 const PostDetails = () => {
   const { postId } = useParams();
@@ -36,103 +43,57 @@ const PostDetails = () => {
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
-  const fetchUserId = useCallback(async () => {
+  const fetchUserData = useCallback(async () => {
     if (!session?.user?.email) return;
-    try {
-      const res = await fetch(`/api/users/email/${session.user.email}`);
-      if (!res.ok) throw new Error("Failed to fetch user ID.");
-      const userData = await res.json();
-      if (!userData._id) throw new Error("User ID missing.");
-      setUserId(userData._id);
-      fetchPostAndUsers(userData._id);
-    } catch (error) {
-      console.error(error);
+    const fetchedUserId = await fetchUserIdByEmail(session.user.email);
+    if (fetchedUserId) {
+      setUserId(fetchedUserId);
+      fetchPostAndUsers(fetchedUserId);
     }
   }, [session]);
 
   const fetchPostAndUsers = async (userId) => {
-    if (!userId) {
-      console.error("No valid user ID provided for fetching posts.");
-      return;
-    }
-
+    setLoading(true);
     try {
-      const postRes = await fetch(`/api/posts`);
-      if (!postRes.ok) throw new Error("Failed to fetch posts.");
-
-      const postData = await postRes.json();
-
-      // Fetching post and mapping original post details if it's a repost
+      const postData = await fetchPosts();
       const postsWithUsers = await Promise.all(
         postData.map(async (post) => {
-          let originalPost = null;
+          let originalPost = post.originalPostId || null;
 
-          // If post has an originalPostId, fetch its data and original user's details
-          if (post.originalPostId) {
-            try {
-              const originalPostData = post.originalPostId;
-              const originalUserId = originalPostData.userId;
-              console.log("originalUserId: " + originalUserId);
-
-              if (originalUserId) {
-                // Fetch the user details of the original post
-                const originalUserRes = await fetch(
-                  `/api/users/${originalUserId}`
-                );
-                if (!originalUserRes.ok)
-                  throw new Error(`Failed to fetch user for original post.`);
-                const originalUser = await originalUserRes.json();
-
-                // Assign original post's details including user's name, avatar, and media
-                originalPost = {
-                  ...originalPostData,
-                  userName: originalUser.name || "Unknown",
-                  userAvatar: originalUser.avatar || defaultImage,
-                  postMedia: originalPostData.postMedia || [],
-                };
-              }
-            } catch (error) {
-              console.error(
-                "Error fetching original post user:",
-                error.message
-              );
+          if (originalPost?.userId) {
+            const originalUser = await fetchUserById(originalPost.userId);
+            if (originalUser) {
               originalPost = {
-                ...post.originalPostId,
-                userName: "Unknown",
-                userAvatar: defaultImage,
-                postMedia: post.originalPostId?.postMedia || [],
+                ...originalPost,
+                userName: originalUser.name || "Unknown",
+                userAvatar: originalUser.avatar || defaultImage,
               };
             }
           }
 
-          // Fetching the user details for the current post's use
-          const userRes = await fetch(`/api/users/${post.userId._id}`);
-          if (!userRes.ok) throw new Error(`Failed to fetch user for post.`);
-          const user = await userRes.json();
-
+          const user = await fetchUserById(post.userId._id);
           return {
             ...post,
-            userName: user.name || "Unknown",
-            userAvatar: user.avatar || defaultImage,
-            originalPost, // originalPost will be null or populated based on originalPostId
+            userName: user?.name || "Unknown",
+            userAvatar: user?.avatar || defaultImage,
+            originalPost,
           };
         })
       );
 
-      // Map liked posts (optional feature)
-      const userLikedPosts = postData.reduce((acc, post) => {
-        acc[post._id] = post.likedBy?.includes(userId) || false;
-        return acc;
-      }, {});
-
-      const userRepostedPosts = postData.reduce((acc, post) => {
-        acc[post._id] = post.repostedBy?.includes(userId) || false;
-        return acc;
-      }, {});
-
       setPosts(postsWithUsers);
-      setLikedPosts(userLikedPosts);
-      setRepostedPosts(userRepostedPosts);
+      setLikedPosts(
+        postData.reduce((acc, post) => {
+          acc[post._id] = post.likedBy?.includes(userId) || false;
+          return acc;
+        }, {})
+      );
+      setRepostedPosts(
+        postData.reduce((acc, post) => {
+          acc[post._id] = post.repostedBy?.includes(userId) || false;
+          return acc;
+        }, {})
+      );
     } catch (error) {
       console.error("Error fetching posts and users:", error.message);
     } finally {
@@ -153,84 +114,65 @@ const PostDetails = () => {
           ? {
               ...item,
               likeCount: isLiked ? item.likeCount - 1 : item.likeCount + 1,
-              userName: item.userName,
-              userAvatar: item.userAvatar,
             }
           : item
       );
 
     if (isComment) {
-      setComments((prevComments) => updateLikes(prevComments));
+      setComments((prev) => updateLikes(prev));
     } else {
-      setPosts((prevPosts) => updateLikes(prevPosts));
+      setPosts((prev) => updateLikes(prev));
     }
 
-    try {
-      const res = await fetch(`/api/posts/${postId}/like`, {
-        method: "POST",
-        body: JSON.stringify({ userId }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (!res.ok) throw new Error("Failed to update like status.");
-
-      const updatedPost = await res.json();
-
-      if (isComment) {
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
-            comment._id === postId
-              ? { ...comment, likeCount: updatedPost.likeCount }
-              : comment
-          )
-        );
-      } else {
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId
-              ? { ...post, likeCount: updatedPost.likeCount }
-              : post
-          )
-        );
-      }
-    } catch (error) {
-      console.error(error);
+    const updatedPost = await updateLikeStatus(postId, userId);
+    if (!updatedPost) {
       setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
-
       if (isComment) {
-        setComments((prevComments) => updateLikes(prevComments));
+        setComments((prev) => updateLikes(prev));
       } else {
-        setPosts((prevPosts) => updateLikes(prevPosts));
+        setPosts((prev) => updateLikes(prev));
       }
+      return;
+    }
+
+    if (isComment) {
+      setComments((prev) =>
+        prev.map((comment) =>
+          comment._id === postId
+            ? { ...comment, likeCount: updatedPost.likeCount }
+            : comment
+        )
+      );
+    } else {
+      setPosts((prev) =>
+        prev.map((post) =>
+          post._id === postId
+            ? { ...post, likeCount: updatedPost.likeCount }
+            : post
+        )
+      );
     }
   };
-
   useEffect(() => {
-    if (status === "authenticated") fetchUserId();
-  }, [status, fetchUserId]);
+    if (status === "authenticated") fetchUserData();
+  }, [status, fetchUserData]);
 
   const fetchPostAndComments = async () => {
     if (!postId) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/posts/${postId}`);
-      const data = await res.json();
-      if (data.message) {
-        setError(data.message);
-        return;
-      }
-      setPosts([
-        {
-          ...data.post,
-          postMedia: data.post.postMedia || [],
-        },
-      ]);
-      setComments(data.comments);
-    } catch (err) {
-      setError("Failed to fetch data");
-    } finally {
-      setLoading(false);
+
+    setLoading(true);
+    const data = await fetchPostAndCommentsApi(postId);
+    if (data.message) {
+      setError(data.message);
+      return;
     }
+    setPosts([
+      {
+        ...data.post,
+        postMedia: data.post.postMedia || [],
+      },
+    ]);
+    setComments(data.comments);
   };
 
   useEffect(() => {
@@ -246,69 +188,41 @@ const PostDetails = () => {
     }
 
     try {
-      const res = await fetch(`/api/posts/repost`, {
-        method: "POST",
-        body: JSON.stringify({
-          userId,
-          postId,
-          isQuote: false,
-          quoteText: "",
-          postMedia: [],
-        }),
-        headers: { "Content-Type": "application/json" },
+      const responseData = await repostPost({
+        userId,
+        postId,
+        isQuote: false,
+        quoteText: "",
+        postMedia: [],
       });
 
-      console.log("Response:", res);
+      const isUndo = responseData.message.includes("Undo repost successful");
+      setRepostedPosts((prev) => ({ ...prev, [postId]: !isUndo }));
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to repost.");
-      }
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? {
+                ...post,
+                repostCount: Math.max(post.repostCount + (isUndo ? -1 : 1), 0),
+              }
+            : post
+        )
+      );
 
-      const responseData = await res.json();
-
-      if (responseData.message.includes("Undo repost successful")) {
-        setRepostedPosts((prev) => ({ ...prev, [postId]: false }));
-
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId
-              ? { ...post, repostCount: Math.max(post.repostCount - 1, 0) }
-              : post
-          )
-        );
-
-        // Also update comments if post is a comment
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
-            comment._id === postId
-              ? {
-                  ...comment,
-                  repostCount: Math.max(comment.repostCount - 1, 0),
-                }
-              : comment
-          )
-        );
-      } else if (responseData.message.includes("Repost successful")) {
-        setRepostedPosts((prev) => ({ ...prev, [postId]: true }));
-
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId
-              ? { ...post, repostCount: post.repostCount + 1 }
-              : post
-          )
-        );
-
-        // Also update comments if post is a comment
-        setComments((prevComments) =>
-          prevComments.map((comment) =>
-            comment._id === postId
-              ? { ...comment, repostCount: comment.repostCount + 1 }
-              : comment
-          )
-        );
-      }
+      setComments((prevComments) =>
+        prevComments.map((comment) =>
+          comment._id === postId
+            ? {
+                ...comment,
+                repostCount: Math.max(
+                  comment.repostCount + (isUndo ? -1 : 1),
+                  0
+                ),
+              }
+            : comment
+        )
+      );
     } catch (error) {
       console.error("Repost Error:", error);
     }

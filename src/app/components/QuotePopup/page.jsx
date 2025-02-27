@@ -8,35 +8,28 @@ import ReplyInput from "../ReplyInput/page";
 import IconsSection from "../IconsSection/page";
 import PostButton from "../PostButton/page";
 import FileUpload from "../FileUpload/page";
+import { uploadFilesToCloudinary, repostPost } from "@/utils/api/postApi";
+import { fetchUserIdByEmail} from "@/utils/api/userApi";
 
 const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
   const [reply, setReply] = useState("");
   const [selectedFile, setSelectedFile] = useState([]);
   const [filePreview, setFilePreview] = useState([]);
   const [hasReposted, setHasReposted] = useState(false);
-  const [userId, setUserId] = useState(null); 
+  const [userId, setUserId] = useState(null);
   const { data: session } = useSession();
 
   useEffect(() => {
-    const fetchUserId = async () => {
+    const getUserId = async () => {
       if (session?.user?.email) {
-        try {
-          const response = await fetch(`/api/users/email/${session.user.email}`);
-          const data = await response.json();
-          if (!response.ok || !data._id) {
-            throw new Error("User ID not found.");
-          }
-          setUserId(data._id);
-          if (post.repostedBy.includes(data._id)) {
-            setHasReposted(true);
-          }
-        } catch (error) {
-          console.error("Error fetching user ID:", error);
+        const id = await fetchUserIdByEmail(session.user.email);
+        setUserId(id);
+        if (id && post.repostedBy.includes(id)) {
+          setHasReposted(true);
         }
       }
     };
-
-    fetchUserId();
+    getUserId();
   }, [session, post]);
 
   const handleFileUpload = (event) => {
@@ -48,64 +41,34 @@ const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
     }
   };
 
-const handleRepostAction = async () => {
-  try {
+  const handleRepostAction = async () => {
     if (!userId) {
       alert("User ID could not be fetched.");
       return;
     }
 
-    let uploadedMedia = [];
+    const uploadedMedia = await uploadFilesToCloudinary(selectedFile);
 
-    if (selectedFile.length > 0) {
-      for (let file of selectedFile) {
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("upload_preset", process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
-
-        const uploadRes = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/upload`,
-          { method: "POST", body: formData }
-        );
-
-        const data = await uploadRes.json();
-        if (data.secure_url) {
-          uploadedMedia.push(data.secure_url);
-        }
-      }
-    }
-
-    const res = await fetch(`/api/posts/repost`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        postId: post._id,
-        isQuote: reply.trim().length > 0 || uploadedMedia.length > 0,
-        quoteText: reply,
-        postMedia: uploadedMedia,
-      }),
+    const response = await repostPost({
+      userId,
+      postId: post._id,
+      isQuote: reply.trim().length > 0 || uploadedMedia.length > 0,
+      quoteText: reply,
+      postMedia: uploadedMedia,
     });
 
-    const responseData = await res.json();
-    if (!res.ok) throw new Error(responseData.error || "Repost action failed.");
-
-    if (responseData.message.includes("Undo repost successful")) {
-      setHasReposted(false);
-    } else {
-      setHasReposted(true);
+    if (response.error) {
+      alert(response.error);
+      return;
     }
 
+    setHasReposted(response.message.includes("Undo repost successful") ? false : true);
     onQuoteSubmit(post._id);
     setReply("");
     setSelectedFile([]);
     setFilePreview([]);
     onClose();
-  } catch (error) {
-    console.error("Repost Action Error:", error);
-    alert("Failed to perform repost action. Please try again.");
-  }
-};
+  };
 
   return (
     <div className={styles.overlay}>
