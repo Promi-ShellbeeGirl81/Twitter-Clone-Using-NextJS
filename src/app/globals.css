@@ -37,6 +37,40 @@ a {
   text-decoration: none;
 }
 
+
+.container{
+  display: flex;
+  background-color: black;
+  color: white;
+}
+.leftcontainer{
+  margin-left: 70px;
+  margin-right: 250px;
+}
+.middlecontainer{
+  width: 600px;
+}
+.rightcontainer{
+  width: 100px;
+  margin-right: 90px;
+  margin-left: 30px;
+}
+
+@media screen and (max-width: 1001px){
+  .icon{
+      display: none;
+  }
+  .container{
+      gap: 0px;
+  }
+  .middlecontainer{
+      margin-left: 70px;
+  }
+  .leftcontainer{
+    margin-right: 20px;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   html {
     color-scheme: dark;

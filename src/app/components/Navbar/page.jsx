@@ -56,10 +56,10 @@ function Navbar () {
     router.push("/");
   };
   const menuItems = [
-    { icon: Home, label: "Home" },
+    { icon: Home, label: "Home" , route: "/home"},
     { icon: Search, label: "Explore" },
-    { icon: Bell, label: "Notifications" },
-    { icon: Mail, label: "Messages" },
+    { icon: Bell, label: "Notifications", route: "/notifications" },
+    { icon: Mail, label: "Messages" , route: "/messages"},
     { icon: Flame, label: "Groks" },
     { icon: ListChecks, label: "Lists" },
     { icon: Bookmark, label: "Bookmarks" },
@@ -67,7 +67,7 @@ function Navbar () {
     { icon: Bookmark, label: "Communities" },
     { icon: Star, label: "Premium" },
     { icon: CheckCircle, label: "Verifies Orgs" },
-    { icon: User, label: "Profile" },
+    { icon: User, label: "Profile", route: "/profile" },
     { icon: MoreHorizontal, label: "More" },
   ];
   return (
@@ -80,9 +80,9 @@ function Navbar () {
           alt="twitter logo"
         />
       </div>
-      {menuItems.map(({ icon: Icon, label }, index) => {
+      {menuItems.map(({ icon: Icon, label, route }, index) => {
         return (
-          <button key={index} className={styles.menuItem}>
+          <button key={index} className={styles.menuItem} onClick={() => route && router.push(route)}>
             <Icon size={24} />
             <span>{label}</span>
           </button>

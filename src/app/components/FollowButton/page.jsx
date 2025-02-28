@@ -1,32 +1,29 @@
 "use client";
-import { useState } from "react";
 import styles from "./page.module.css";
+import { usePathname, useRouter } from "next/navigation";
 
 const FollowButton = () => {
-  const [active, setActive] = useState("forYou");
+  const router = useRouter();
+  const pathname = usePathname();
+
+
   return (
     <div className={styles.container}>
       <button
-        className={`${styles.followbtn} ${
-          active === "forYou" ? styles.active : ""
-        }`}
-        onClick={() => setActive("forYou")}
+        className={`${styles.followbtn} ${pathname === "/home"? styles.active : ""}`}
+        onClick={() => router.push("/home")}
       >
-        <span className={active === "forYou" ? styles.underline : ""}>
-          For you
-        </span>
+        <span className={pathname === "/home"? styles.underline : ""}>For You</span>
       </button>
+
       <button
-        className={`${styles.followbtn} ${
-          active === "following" ? styles.active : ""
-        }`}
-        onClick={() => setActive("following")}
+        className={`${styles.followbtn} ${pathname === "/home/following" ? styles.active : ""}`}
+        onClick={() =>router.push("/home/following")}
       >
-         <span className={active === "following" ? styles.underline : ""}>
-          Following
-        </span>
+        <span className={pathname === "/home/following" ? styles.underline : ""}>Following</span>
       </button>
     </div>
   );
 };
+
 export default FollowButton;

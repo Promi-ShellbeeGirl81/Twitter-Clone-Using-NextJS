@@ -2,11 +2,11 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import FollowButton from "../components/FollowButton/page";
-import StatusUpdate from "../components/StatusUpdate/page";
-import NewsFeed from "../components/newsfeed/page";
+import NewsFeed from "@/app/components/newsfeed/page";
+import FollowButton from "@/app/components/FollowButton/page";
+import StatusUpdate from "@/app/components/StatusUpdate/page";
 
-export default function HomePage() {
+export default function HomeFollowing() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -33,8 +33,8 @@ export default function HomePage() {
 
   return (
     <>
-      <FollowButton />
-      <StatusUpdate />
+    <FollowButton/>
+    <StatusUpdate/>
       <NewsFeed />
     </>
   );

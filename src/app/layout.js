@@ -1,8 +1,11 @@
 "use client";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SessionProvider } from "next-auth/react";
+import { SessionProvider, useSession } from "next-auth/react";
 import "@/app/page.module.css";
+import Navbar from "./components/Navbar/page";
+import Sidebar from "./components/Sidebar/page";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,13 +17,41 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+function LayoutContent({ children }) {
+  const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const hideNavbarAndSidebar = pathname === "/";
 
+  if (status === "loading") {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="container">
+      {!hideNavbarAndSidebar && session && (
+        <div className="leftcontainer">
+          <Navbar />
+        </div>
+      )}
+
+      <div className="middlecontainer">{children}</div>
+
+      {!hideNavbarAndSidebar && session && (
+        <div className="rightcontainer">
+          <Sidebar />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <LayoutContent>{children}</LayoutContent>
+        </SessionProvider>
       </body>
     </html>
   );
