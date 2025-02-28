@@ -6,9 +6,6 @@ import Image from "next/image";
 import { MessageCircle, Repeat, Heart, Eye } from "lucide-react";
 import RepostModal from "@/app/components/RepostModal/page";
 import styles from "../../components/newsfeed/page.module.css";
-import homestyles from "@/app/home/page.module.css";
-import Navbar from "@/app/components/Navbar/page";
-import Sidebar from "@/app/components/Sidebar/page";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ReplyPopup from "@/app/components/replyPopup/page";
@@ -273,306 +270,291 @@ const PostDetails = () => {
   if (error) return <div>{error}</div>;
 
   return (
-    <div className={homestyles.container}>
-      <div className={homestyles.leftcontainer}>
-        <Navbar />
-      </div>
-      <div className={homestyles.middlecontainer}>
-        <div className={styles.post}>
-          <div className={styles.userInfo}>
-            <Image
-              src={post.userId.userAvatar || defaultImage}
-              width={35}
-              height={32}
-              alt="User profile"
-              className={styles.userImage}
-            />
-            <div className={styles.userNames}>
-              <h3>{post.userId.name}</h3>
-              <h5>@{post.userId.name}</h5>
-            </div>
-          </div>
-          <p className={styles.postText}>{post.postText}</p>
-
-          {/* Post Media */}
-          {post?.postMedia?.length > 0 && (
-            <div className={styles.postMedia}>
-              {post.postMedia.slice(0, 4).map((media, index) => (
-                <div key={index}>
-                  {media.endsWith(".mp4") || media.endsWith(".webm") ? (
-                    <video width="100%" controls>
-                      <source
-                        src={media}
-                        type={
-                          media.endsWith(".mp4") ? "video/mp4" : "video/webm"
-                        }
-                      />
-                    </video>
-                  ) : (
-                    <Image
-                      src={media}
-                      width={600}
-                      height={300}
-                      alt={`Post content ${index + 1}`}
-                      className={styles.postImage}
-                    />
-                  )}
-                </div>
-              ))}
-              {post.postMedia.length > 4 && (
-                <div className={styles.extraMedia}>
-                  +{post.postMedia.length - 4} more
-                </div>
-              )}
-            </div>
-          )}
-
-          {originalPost && (
-            <div className={styles.originalPost}>
-              <div className={styles.userInfo}>
-                <Image
-                  src={originalPost.userAvatar}
-                  width={30}
-                  height={30}
-                  alt="Original user avatar"
-                />
-                <div className={styles.userNames}>
-                  <h4>{originalPost.userName}</h4>
-                </div>
-              </div>
-              <p>{originalPost.postText || ""}</p>
-
-              {originalPost.postMedia && originalPost.postMedia.length > 0 && (
-                <Image
-                  src={originalPost.postMedia[0]}
-                  width={600}
-                  height={300}
-                  alt="Original post media"
-                  className={styles.postImage2}
-                />
-              )}
-            </div>
-          )}
-
-          <div
-            className={styles.engagement}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className={styles.engagement1}>
-              <span
-                className={styles.en1}
-                onClick={(e) => handleReplyClick(e, post)}
-              >
-                <span className={styles.icon}>
-                  <MessageCircle size={15} />
-                </span>{" "}
-                {post.replyCount}
-              </span>
-              <span
-                className={styles.en2}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedPost(post);
-                  toggleModal(e);
-                }}
-                style={{
-                  color: repostedPosts[post._id]
-                    ? "green"
-                    : "rgba(255, 255, 255, 0.5)",
-                }}
-              >
-                <span className={styles.icon}>
-                  <Repeat
-                    size={15}
-                    fill={repostedPosts[post._id] ? "green" : "none"}
-                  />
-                </span>
-                {post.repostCount}
-              </span>
-              <span
-                className={styles.en3}
-                onClick={() => handleLikeClick(post._id)}
-                style={{
-                  color: likedPosts[post._id]
-                    ? "magenta"
-                    : "rgba(255, 255, 255, 0.5)",
-                }}
-              >
-                <span className={styles.icon}>
-                  <Heart
-                    size={15}
-                    fill={likedPosts[post._id] ? "magenta" : "none"}
-                  />
-                </span>{" "}
-                {post.likeCount}
-              </span>
-
-              <span className={styles.en1}>
-                <span className={styles.icon}>
-                  <Eye size={15} />
-                </span>{" "}
-                {post.viewCount}
-              </span>
-            </div>
+    <>
+      <div className={styles.post}>
+        <div className={styles.userInfo}>
+          <Image
+            src={post.userId.userAvatar || defaultImage}
+            width={35}
+            height={32}
+            alt="User profile"
+            className={styles.userImage}
+          />
+          <div className={styles.userNames}>
+            <h3>{post.userId.name}</h3>
+            <h5>@{post.userId.name}</h5>
           </div>
         </div>
-        {comments.length === 0 ? (
-          <p>No comments yet.</p>
-        ) : (
-          comments.map((comment) => (
-            <div
-              key={comment._id}
-              className={styles.post}
-              onClick={() => handlePostClick(comment._id)}
-            >
-              <div className={styles.userInfo}>
-                <Image
-                  src={comment.userId?.avatar || defaultImage}
-                  width={35}
-                  height={32}
-                  alt="User profile"
-                  className={styles.userImage}
-                />
-                <div className={styles.userNames}>
-                  <h3>{comment.userId?.name}</h3>
-                  <h5>@{comment.userId?.name}</h5>
-                </div>
+        <p className={styles.postText}>{post.postText}</p>
+
+        {/* Post Media */}
+        {post?.postMedia?.length > 0 && (
+          <div className={styles.postMedia}>
+            {post.postMedia.slice(0, 4).map((media, index) => (
+              <div key={index}>
+                {media.endsWith(".mp4") || media.endsWith(".webm") ? (
+                  <video width="100%" controls>
+                    <source
+                      src={media}
+                      type={media.endsWith(".mp4") ? "video/mp4" : "video/webm"}
+                    />
+                  </video>
+                ) : (
+                  <Image
+                    src={media}
+                    width={600}
+                    height={300}
+                    alt={`Post content ${index + 1}`}
+                    className={styles.postImage}
+                  />
+                )}
               </div>
-              <p className={styles.postText}>{comment.postText}</p>
-              {comment?.postMedia?.length > 0 && (
-                <div className={styles.postMedia}>
-                  {comment.postMedia.slice(0, 4).map((media, index) => (
-                    <div key={index}>
-                      {media.endsWith(".mp4") || media.endsWith(".webm") ? (
-                        <video width="100%" controls>
-                          <source
-                            src={media}
-                            type={
-                              media.endsWith(".mp4")
-                                ? "video/mp4"
-                                : "video/webm"
-                            }
-                          />
-                        </video>
-                      ) : (
-                        <Image
-                          src={media}
-                          width={600}
-                          height={300}
-                          alt={`Post content ${index + 1}`}
-                          className={styles.postImage}
-                        />
-                      )}
-                    </div>
-                  ))}
-                  {comment.postMedia.length > 4 && (
-                    <div className={styles.extraMedia}>
-                      +{comment.postMedia.length - 4} more
-                    </div>
-                  )}
-                </div>
-              )}
+            ))}
+            {post.postMedia.length > 4 && (
+              <div className={styles.extraMedia}>
+                +{post.postMedia.length - 4} more
+              </div>
+            )}
+          </div>
+        )}
 
-              <div
-                className={styles.engagement}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className={styles.engagement1}>
-                  <span className={styles.en1}>
-                    <span
-                      className={styles.icon}
-                      onClick={(e) => handleReplyClick(e, comment)}
-                    >
-                      <MessageCircle size={15} />
-                    </span>{" "}
-                    {comment.replyCount}
-                  </span>
-                  <span
-                    className={styles.en2}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedPost(comment);
-                      toggleModal(e);
-                    }}
-                    style={{
-                      color: repostedPosts[comment._id]
-                        ? "green"
-                        : "rgba(255, 255, 255, 0.5)",
-                    }}
-                  >
-                    <span className={styles.icon}>
-                      <Repeat
-                        size={15}
-                        fill={repostedPosts[comment._id] ? "green" : "none"}
-                      />
-                    </span>
-                    {comment.repostCount}
-                  </span>
-                  <span
-                    className={styles.en3}
-                    onClick={() => handleLikeClick(comment._id, true)}
-                    style={{
-                      color: likedPosts[comment._id]
-                        ? "magenta"
-                        : "rgba(255, 255, 255, 0.5)",
-                    }}
-                  >
-                    <span className={styles.icon}>
-                      <Heart
-                        size={15}
-                        fill={likedPosts[comment._id] ? "magenta" : "none"}
-                      />
-                    </span>{" "}
-                    {comment.likeCount}
-                  </span>
-
-                  <span className={styles.en1}>
-                    <span className={styles.icon}>
-                      <Eye size={15} />
-                    </span>{" "}
-                    {comment.viewCount}
-                  </span>
-                </div>
+        {originalPost && (
+          <div className={styles.originalPost}>
+            <div className={styles.userInfo}>
+              <Image
+                src={originalPost.userAvatar}
+                width={30}
+                height={30}
+                alt="Original user avatar"
+              />
+              <div className={styles.userNames}>
+                <h4>{originalPost.userName}</h4>
               </div>
             </div>
-          ))
+            <p>{originalPost.postText || ""}</p>
+
+            {originalPost.postMedia && originalPost.postMedia.length > 0 && (
+              <Image
+                src={originalPost.postMedia[0]}
+                width={600}
+                height={300}
+                alt="Original post media"
+                className={styles.postImage2}
+              />
+            )}
+          </div>
         )}
 
-        {showModal && (
-          <RepostModal
-            modalPosition={modalPosition}
-            onClose={() => setShowModal(false)}
-            onRepost={() => {
-              handleRepost(selectedPost._id);
-              setShowModal(false);
-            }}
-            isReposted={repostedPosts[selectedPost._id] || false}
-            onQuote={() => {
-              handleQuoteClick(selectedPost);
-              setShowModal(false);
-            }}
-          />
-        )}
-        {quotePopupVisible && quotePost && (
-          <QuotePopup
-            post={quotePost}
-            onClose={() => setQuotePopupVisible(false)}
-            onQuoteSubmit={handleReplySubmit}
-          />
-        )}
+        <div className={styles.engagement} onClick={(e) => e.stopPropagation()}>
+          <div className={styles.engagement1}>
+            <span
+              className={styles.en1}
+              onClick={(e) => handleReplyClick(e, post)}
+            >
+              <span className={styles.icon}>
+                <MessageCircle size={15} />
+              </span>{" "}
+              {post.replyCount}
+            </span>
+            <span
+              className={styles.en2}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedPost(post);
+                toggleModal(e);
+              }}
+              style={{
+                color: repostedPosts[post._id]
+                  ? "green"
+                  : "rgba(255, 255, 255, 0.5)",
+              }}
+            >
+              <span className={styles.icon}>
+                <Repeat
+                  size={15}
+                  fill={repostedPosts[post._id] ? "green" : "none"}
+                />
+              </span>
+              {post.repostCount}
+            </span>
+            <span
+              className={styles.en3}
+              onClick={() => handleLikeClick(post._id)}
+              style={{
+                color: likedPosts[post._id]
+                  ? "magenta"
+                  : "rgba(255, 255, 255, 0.5)",
+              }}
+            >
+              <span className={styles.icon}>
+                <Heart
+                  size={15}
+                  fill={likedPosts[post._id] ? "magenta" : "none"}
+                />
+              </span>{" "}
+              {post.likeCount}
+            </span>
 
-        {replyPopupVisible && selectedPost && (
-          <ReplyPopup
-            post={selectedPost}
-            onClose={closeReplyPopup}
-            onReplySubmit={handleReplySubmit}
-          />
-        )}
+            <span className={styles.en1}>
+              <span className={styles.icon}>
+                <Eye size={15} />
+              </span>{" "}
+              {post.viewCount}
+            </span>
+          </div>
+        </div>
       </div>
-      <div className={homestyles.rightcontainer}>
-        <Sidebar />
-      </div>
-    </div>
+      {comments.length === 0 ? (
+        <p>No comments yet.</p>
+      ) : (
+        comments.map((comment) => (
+          <div
+            key={comment._id}
+            className={styles.post}
+            onClick={() => handlePostClick(comment._id)}
+          >
+            <div className={styles.userInfo}>
+              <Image
+                src={comment.userId?.avatar || defaultImage}
+                width={35}
+                height={32}
+                alt="User profile"
+                className={styles.userImage}
+              />
+              <div className={styles.userNames}>
+                <h3>{comment.userId?.name}</h3>
+                <h5>@{comment.userId?.name}</h5>
+              </div>
+            </div>
+            <p className={styles.postText}>{comment.postText}</p>
+            {comment?.postMedia?.length > 0 && (
+              <div className={styles.postMedia}>
+                {comment.postMedia.slice(0, 4).map((media, index) => (
+                  <div key={index}>
+                    {media.endsWith(".mp4") || media.endsWith(".webm") ? (
+                      <video width="100%" controls>
+                        <source
+                          src={media}
+                          type={
+                            media.endsWith(".mp4") ? "video/mp4" : "video/webm"
+                          }
+                        />
+                      </video>
+                    ) : (
+                      <Image
+                        src={media}
+                        width={600}
+                        height={300}
+                        alt={`Post content ${index + 1}`}
+                        className={styles.postImage}
+                      />
+                    )}
+                  </div>
+                ))}
+                {comment.postMedia.length > 4 && (
+                  <div className={styles.extraMedia}>
+                    +{comment.postMedia.length - 4} more
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div
+              className={styles.engagement}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className={styles.engagement1}>
+                <span className={styles.en1}>
+                  <span
+                    className={styles.icon}
+                    onClick={(e) => handleReplyClick(e, comment)}
+                  >
+                    <MessageCircle size={15} />
+                  </span>{" "}
+                  {comment.replyCount}
+                </span>
+                <span
+                  className={styles.en2}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPost(comment);
+                    toggleModal(e);
+                  }}
+                  style={{
+                    color: repostedPosts[comment._id]
+                      ? "green"
+                      : "rgba(255, 255, 255, 0.5)",
+                  }}
+                >
+                  <span className={styles.icon}>
+                    <Repeat
+                      size={15}
+                      fill={repostedPosts[comment._id] ? "green" : "none"}
+                    />
+                  </span>
+                  {comment.repostCount}
+                </span>
+                <span
+                  className={styles.en3}
+                  onClick={() => handleLikeClick(comment._id, true)}
+                  style={{
+                    color: likedPosts[comment._id]
+                      ? "magenta"
+                      : "rgba(255, 255, 255, 0.5)",
+                  }}
+                >
+                  <span className={styles.icon}>
+                    <Heart
+                      size={15}
+                      fill={likedPosts[comment._id] ? "magenta" : "none"}
+                    />
+                  </span>{" "}
+                  {comment.likeCount}
+                </span>
+
+                <span className={styles.en1}>
+                  <span className={styles.icon}>
+                    <Eye size={15} />
+                  </span>{" "}
+                  {comment.viewCount}
+                </span>
+              </div>
+            </div>
+          </div>
+        ))
+      )}
+
+      {showModal && (
+        <RepostModal
+          modalPosition={modalPosition}
+          onClose={() => setShowModal(false)}
+          onRepost={() => {
+            handleRepost(selectedPost._id);
+            setShowModal(false);
+          }}
+          isReposted={repostedPosts[selectedPost._id] || false}
+          onQuote={() => {
+            handleQuoteClick(selectedPost);
+            setShowModal(false);
+          }}
+        />
+      )}
+      {quotePopupVisible && quotePost && (
+        <QuotePopup
+          post={quotePost}
+          onClose={() => setQuotePopupVisible(false)}
+          onQuoteSubmit={handleReplySubmit}
+        />
+      )}
+
+      {replyPopupVisible && selectedPost && (
+        <ReplyPopup
+          post={selectedPost}
+          onClose={closeReplyPopup}
+          onReplySubmit={handleReplySubmit}
+        />
+      )}
+    </>
   );
 };
 
