@@ -6,6 +6,7 @@ import { useSession} from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import { fetchNotifications as getNotifications } from "@/utils/api/notificationApi";
 
 export default function Notification() {
     const { data: session, status } = useSession();
@@ -27,16 +28,10 @@ export default function Notification() {
       }, [session]);
 
       const fetchNotifications = async () => {
-        try {
-          const res = await fetch("/api/notifications");
-          if (!res.ok) throw new Error("Failed to fetch notifications");
-          const data = await res.json();
-          setNotifications(data);
-        } catch (error) {
-          console.error("Error fetching notifications:", error);
-        } finally {
-          setLoading(false);
-        }
+        setLoading(true);
+        const data = await getNotifications(); 
+        setNotifications(data);
+        setLoading(false);
       };
       const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";

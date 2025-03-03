@@ -17,6 +17,7 @@ import {
   updateLikeStatus,
 } from "@/utils/api/postApi";
 import { fetchUserIdByEmail, fetchUserById } from "@/utils/api/userApi";
+import { sendNotification } from "@/utils/api/notificationApi";
 
 const PostDetails = () => {
   const { postId } = useParams();
@@ -101,6 +102,15 @@ const PostDetails = () => {
   const handleLikeClick = async (postId, isComment = false) => {
     if (!userId) return;
 
+    const postOrComment = isComment
+      ? comments.find((c) => c._id === postId)
+      : posts.find((p) => p._id === postId);
+
+    if (!postOrComment) {
+      console.error("Error: Post or comment not found in state.");
+      return;
+    }
+
     const isLiked = likedPosts[postId] ?? false;
     const updatedLikedPosts = { ...likedPosts, [postId]: !isLiked };
     setLikedPosts(updatedLikedPosts);
@@ -130,6 +140,14 @@ const PostDetails = () => {
         setPosts((prev) => updateLikes(prev));
       }
       return;
+    }
+    if (!isLiked) {
+      await sendNotification({
+        senderId: userId,
+        receiverId: postOrComment.userId._id,
+        type: "like",
+        postId: postOrComment._id,
+      });
     }
 
     if (isComment) {
@@ -184,6 +202,12 @@ const PostDetails = () => {
       return;
     }
 
+    const post = posts.find((p) => p._id === postId);
+    if (!post) {
+      console.error("Error: Post not found in state.");
+      return;
+    }
+
     try {
       const responseData = await repostPost({
         userId,
@@ -220,6 +244,7 @@ const PostDetails = () => {
             : comment
         )
       );
+      await sendNotification({ senderId: userId, receiverId: post.userId._id, type: "repost" , postId: post._id});
     } catch (error) {
       console.error("Repost Error:", error);
     }
@@ -249,7 +274,7 @@ const PostDetails = () => {
     setReplyPopupVisible(true);
   };
 
-  const handleReplySubmit = (postId) => {
+  const handleReplySubmit = async(postId) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
         post._id === postId
@@ -257,6 +282,7 @@ const PostDetails = () => {
           : post
       )
     );
+    await sendNotification({ senderId: userId, receiverId: post.userId._id, type: "comment" , postId: post._id});
   };
 
   const closeReplyPopup = () => {

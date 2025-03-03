@@ -19,7 +19,8 @@ import { useRouter } from "next/navigation";
 import ReplyPopup from "../replyPopup/page";
 import QuotePopup from "../QuotePopup/page";
 import { fetchUserById, fetchUserIdByEmail } from "@/utils/api/userApi";
-import { fetchPosts, updateLikeStatus } from "@/utils/api/postApi";
+import { fetchPosts, repostPost, updateLikeStatus } from "@/utils/api/postApi";
+import { sendNotification } from "@/utils/api/notificationApi";
 
 const NewsFeed = () => {
   const { data: session, status } = useSession();
@@ -118,28 +119,13 @@ const NewsFeed = () => {
     if (!updatedPost) {
       setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
     } else if (!isLiked) {
-      await sendNotification({ receiverId: post.userId._id, type: "like" ,  postId: post._id});
+      await sendNotification({ senderId: userId, receiverId: post.userId._id, type: "like" ,  postId: post._id});
     }
   };
 
   useEffect(() => {
     if (status === "authenticated") fetchUserData();
   }, [status, fetchUserData]);
-
-  const sendNotification = async ({ receiverId, type, postId }) => {
-    if (!userId || userId === receiverId) return;
-
-    await fetch("/api/notifications", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        receiverId,
-        senderId: userId,
-        type,
-        postId,
-      }),
-    });
-  };
 
   const handleRepost = async (postId) => {
     console.log("User and post:", userId, "and", postId);
@@ -156,26 +142,13 @@ const NewsFeed = () => {
     }
 
     try {
-      const res = await fetch(`/api/posts/repost`, {
-        method: "POST",
-        body: JSON.stringify({
-          userId,
-          postId,
-          isQuote: false,
-          quoteText: "",
-          postMedia: [],
-        }),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      console.log("Response:", res);
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to repost.");
-      }
-
-      const responseData = await res.json();
+          const responseData = await repostPost({
+            userId,
+            postId,
+            isQuote: false,
+            quoteText: "",
+            postMedia: [],
+          });
 
       if (responseData.message.includes("Undo repost successful")) {
         setRepostedPosts((prev) => ({ ...prev, [postId]: false }));
@@ -197,7 +170,7 @@ const NewsFeed = () => {
               : post
           )
         );
-        await sendNotification({ receiverId: post.userId._id, type: "repost" , postId: post._id});
+        await sendNotification({ senderId: userId, receiverId: post.userId._id, type: "repost" , postId: post._id});
       }
     } catch (error) {
       console.error("Repost Error:", error);
@@ -247,7 +220,7 @@ const NewsFeed = () => {
           : post
       )
     );
-    await sendNotification({ receiverId: post.userId._id, type: "comment" , postId: post._id});
+    await sendNotification({ senderId: userId, receiverId: post.userId._id, type: "comment" , postId: post._id});
       
   };
 
