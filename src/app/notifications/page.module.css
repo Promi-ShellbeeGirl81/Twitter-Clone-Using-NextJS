@@ -11,3 +11,18 @@
 .header h2{
     font-size: 20px;
 }
+
+.notificationItem{
+    display: flex;
+    gap: 20px;
+    padding: 20px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.notificationImage{
+    border-radius: 50%;
+}
+.notificationText{
+    margin-top: 5px;
+    display: flex;
+    gap: 5px;
+}
