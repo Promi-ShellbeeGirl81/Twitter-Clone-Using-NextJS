@@ -67,7 +67,7 @@ export default function Notification() {
         ) : (
           notifications.map((notification) => (
             <div key={notification._id} className={styles.notificationItem}>
-              <p><strong>{notification.sender?.username}</strong> {getNotificationMessage(notification)}</p>
+              <p><strong>{notification.sender?.name}</strong> {getNotificationMessage(notification)}{notification.post?.postText}</p>
               {!notification.isRead && <span className={styles.unreadDot}></span>}
             </div>
           ))

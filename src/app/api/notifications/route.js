@@ -14,7 +14,8 @@ export async function GET(req) {
 export async function POST(req) {
     try {
       const body = await req.json();
-  
+
+  console.log(body);
       if (!body.receiverId || !body.senderId || !body.type) {
         return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
       }

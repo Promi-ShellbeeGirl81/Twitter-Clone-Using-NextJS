@@ -32,6 +32,21 @@ const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
     getUserId();
   }, [session, post]);
 
+  const sendNotification = async ({ receiverId, type, postId }) => {
+    if (!userId || userId === receiverId) return;
+
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        receiverId,
+        senderId: userId,
+        type,
+        postId,
+      }),
+    });
+  };
+
   const handleFileUpload = (event) => {
     const files = Array.from(event.target.files);
     if (files.length > 0) {
@@ -64,6 +79,9 @@ const QuotePopup = ({ post, onClose, onQuoteSubmit }) => {
 
     setHasReposted(response.message.includes("Undo repost successful") ? false : true);
     onQuoteSubmit(post._id);
+    if (!response.message.includes("Undo repost successful")) {
+      await sendNotification({ receiverId: post.userId._id, type: "repost" , postId: post._id});
+    }
     setReply("");
     setSelectedFile([]);
     setFilePreview([]);

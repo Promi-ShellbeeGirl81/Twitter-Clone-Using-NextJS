@@ -40,87 +40,118 @@ const NewsFeed = () => {
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
-    const fetchUserData = useCallback(async () => {
-      if (!session?.user?.email) return;
-      const id = await fetchUserIdByEmail(session.user.email);
-      if (id) {
-        setUserId(id);
-        fetchPostsData(id);
-      }
-    }, [session]);
+  const fetchUserData = useCallback(async () => {
+    if (!session?.user?.email) return;
+    const id = await fetchUserIdByEmail(session.user.email);
+    if (id) {
+      setUserId(id);
+      fetchPostsData(id);
+    }
+  }, [session]);
 
-    const fetchPostsData = async (userId) => {
-      const postData = await fetchPosts();
-      if (!postData.length) return;
-  
-      const postsWithUsers = await Promise.all(
-        postData.map(async (post) => {
-          let originalPost = null;
-          if (post.originalPostId) {
-            const originalPostData = post.originalPostId;
-            const originalUser = await fetchUserById(originalPostData.userId);
-            originalPost = {
-              ...originalPostData,
-              userName: originalUser?.name || "Unknown",
-              userAvatar: originalUser?.avatar || defaultImage,
-              postMedia: originalPostData.postMedia || [],
-            };
-          }
-  
-          const user = await fetchUserById(post.userId._id);
-          return {
-            ...post,
-            userName: user?.name || "Unknown",
-            userAvatar: user?.avatar || defaultImage,
-            originalPost,
+  const fetchPostsData = async (userId) => {
+    const postData = await fetchPosts();
+    if (!postData.length) return;
+
+    const postsWithUsers = await Promise.all(
+      postData.map(async (post) => {
+        let originalPost = null;
+        if (post.originalPostId) {
+          const originalPostData = post.originalPostId;
+          const originalUser = await fetchUserById(originalPostData.userId);
+          originalPost = {
+            ...originalPostData,
+            userName: originalUser?.name || "Unknown",
+            userAvatar: originalUser?.avatar || defaultImage,
+            postMedia: originalPostData.postMedia || [],
           };
-        })
-      );
-  
-      const userLikedPosts = postData.reduce((acc, post) => {
-        acc[post._id] = post.likedBy?.includes(userId) || false;
-        return acc;
-      }, {});
-  
-      const userRepostedPosts = postData.reduce((acc, post) => {
-        acc[post._id] = post.repostedBy?.includes(userId) || false;
-        return acc;
-      }, {});
-  
-      setPosts(postsWithUsers);
-      setLikedPosts(userLikedPosts);
-      setRepostedPosts(userRepostedPosts);
-      setLoading(false);
-    };
+        }
 
-    const handleLikeClick = async (postId) => {
-      if (!userId) return;
-      const isLiked = likedPosts[postId] ?? false;
-      setLikedPosts((prev) => ({ ...prev, [postId]: !isLiked }));
-  
-      setPosts((prevPosts) =>
-        prevPosts.map((post) =>
-          post._id === postId
-            ? { ...post, likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1 }
-            : post
-        )
-      );
-  
-      const updatedPost = await updateLikeStatus(postId, userId);
-      if (!updatedPost) {
-        setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
-      }
-    };
-  
-    useEffect(() => {
-      if (status === "authenticated") fetchUserData();
-    }, [status, fetchUserData]);
+        const user = await fetchUserById(post.userId._id);
+        return {
+          ...post,
+          userName: user?.name || "Unknown",
+          userAvatar: user?.avatar || defaultImage,
+          originalPost,
+        };
+      })
+    );
+
+    const userLikedPosts = postData.reduce((acc, post) => {
+      acc[post._id] = post.likedBy?.includes(userId) || false;
+      return acc;
+    }, {});
+
+    const userRepostedPosts = postData.reduce((acc, post) => {
+      acc[post._id] = post.repostedBy?.includes(userId) || false;
+      return acc;
+    }, {});
+
+    setPosts(postsWithUsers);
+    setLikedPosts(userLikedPosts);
+    setRepostedPosts(userRepostedPosts);
+    setLoading(false);
+  };
+
+  const handleLikeClick = async (postId) => {
+    if (!userId) return;
+    const post = posts.find((p) => p._id === postId);
+    if (!post) {
+      console.error("Error: Post not found in state.");
+      return;
+    }
+    const isLiked = likedPosts[postId] ?? false;
+    setLikedPosts((prev) => ({ ...prev, [postId]: !isLiked }));
+
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === postId
+          ? {
+              ...post,
+              likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
+            }
+          : post
+      )
+    );
+
+    const updatedPost = await updateLikeStatus(postId, userId);
+    if (!updatedPost) {
+      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
+    } else if (!isLiked) {
+      await sendNotification({ receiverId: post.userId._id, type: "like" ,  postId: post._id});
+    }
+  };
+
+  useEffect(() => {
+    if (status === "authenticated") fetchUserData();
+  }, [status, fetchUserData]);
+
+  const sendNotification = async ({ receiverId, type, postId }) => {
+    if (!userId || userId === receiverId) return;
+
+    await fetch("/api/notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        receiverId,
+        senderId: userId,
+        type,
+        postId,
+      }),
+    });
+  };
 
   const handleRepost = async (postId) => {
     console.log("User and post:", userId, "and", postId);
 
     if (!userId || !postId) {
       console.error("Error: Missing userId or postId for repost.");
+      return;
+    }
+
+    const post = posts.find((p) => p._id === postId);
+    if (!post) {
+      console.error("Error: Post not found in state.");
       return;
     }
 
@@ -166,6 +197,7 @@ const NewsFeed = () => {
               : post
           )
         );
+        await sendNotification({ receiverId: post.userId._id, type: "repost" , postId: post._id});
       }
     } catch (error) {
       console.error("Repost Error:", error);
@@ -202,7 +234,12 @@ const NewsFeed = () => {
     setSelectedPost(null);
   };
 
-  const handleReplySubmit = (postId) => {
+  const handleReplySubmit = async (postId) => {
+    const post = posts.find((p) => p._id === postId);
+    if (!post) {
+      console.error("Error: Post not found in state.");
+      return;
+    }
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
         post._id === postId
@@ -210,6 +247,8 @@ const NewsFeed = () => {
           : post
       )
     );
+    await sendNotification({ receiverId: post.userId._id, type: "comment" , postId: post._id});
+      
   };
 
   return (

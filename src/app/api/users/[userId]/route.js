@@ -4,7 +4,7 @@ import { getUser } from "@/controllers/userControllers/userController";
 export async function GET(req, { params }) {
   console.log("Received params:", params);  
   
-  let userId = params.userId; 
+  let userId = await params.userId; 
 
   if (typeof userId !== "string") {
     console.error("userId is not a string, it's:", userId);
