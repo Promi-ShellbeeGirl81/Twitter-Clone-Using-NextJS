@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import FollowButton from "../components/FollowButton/page";
 import StatusUpdate from "../components/StatusUpdate/page";
-import NewsFeed from "../components/newsfeed/page";
+import PostList from "../components/PostList/page";
 
 export default function HomePage() {
   const { data: session, status } = useSession();
@@ -36,7 +36,7 @@ export default function HomePage() {
     <div className={styles.container}>
       <FollowButton />
       <StatusUpdate />
-      <NewsFeed />
+      <PostList userId={null} /> 
     </div>
   );
 }

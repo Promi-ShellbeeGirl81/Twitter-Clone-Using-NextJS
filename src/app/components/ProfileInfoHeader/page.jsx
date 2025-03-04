@@ -5,11 +5,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Calendar } from "lucide-react";
+import EditProfileModal from "../EditProfileModal/page";
 
 export default function ProfileInfoHeader() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [userData, setUserData] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (status !== "loading" && !session) {
@@ -49,7 +51,7 @@ export default function ProfileInfoHeader() {
   return (
     <div className={style.container}>
       <div className={style.coverPhoto}>
-        <Image src={defaultImage} alt="coverPic" width={600} height={30} />
+        <Image src={userData.coverPic} alt="coverPic" width={600} height={30} />
       </div>
       <div className={style.profileInfo}>
         <div className={style.profileImageContainer}>
@@ -60,7 +62,12 @@ export default function ProfileInfoHeader() {
             width={60}
             height={60}
           />
-          <button className={style.editProfile}>Edit Profile</button>
+          <button
+            className={style.editProfile}
+            onClick={() => setIsEditModalOpen(true)}
+          >
+            Edit Profile
+          </button>
         </div>
         <h2>{userData.name}</h2>
         <h4>@{userData.name}</h4>
@@ -77,6 +84,12 @@ export default function ProfileInfoHeader() {
           </div>
         </div>
       </div>
+      {isEditModalOpen && (
+        <EditProfileModal
+          userData={userData}
+          onClose={() => setIsEditModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

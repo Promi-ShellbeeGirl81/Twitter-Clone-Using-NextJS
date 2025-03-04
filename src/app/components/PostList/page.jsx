@@ -22,10 +22,9 @@ import { fetchUserById, fetchUserIdByEmail } from "@/utils/api/userApi";
 import { fetchPosts, repostPost, updateLikeStatus } from "@/utils/api/postApi";
 import { sendNotification } from "@/utils/api/notificationApi";
 
-const NewsFeed = () => {
+const PostList = ({ userId }) => {
   const [posts, setPosts] = useState();
   const { data: session, status } = useSession();
-  const [userId, setUserId] = useState(null);
   const [likedPosts, setLikedPosts] = useState({});
   const [loading, setLoading] = useState(true);
   const [replyPopupVisible, setReplyPopupVisible] = useState(false);
@@ -41,58 +40,74 @@ const NewsFeed = () => {
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
-  const fetchUserData = useCallback(async () => {
-    if (!session?.user?.email) return;
-    const id = await fetchUserIdByEmail(session.user.email);
-    if (id) {
-      setUserId(id);
-      fetchPostsData(id);
-    }
-  }, [session]);
+    const fetchUserData = useCallback(async () => {
+      if (!userId && session?.user?.email) {
+          const id = await fetchUserIdByEmail(session.user.email);
+          if (id) {
+              fetchPostsData(id);
+          }
+      } else {
+          fetchPostsData(userId);
+      }
+  }, [session, userId]);
+  
 
   const fetchPostsData = async (userId) => {
-    const postData = await fetchPosts();
-    if (!postData.length) return;
-
-    const postsWithUsers = await Promise.all(
-      postData.map(async (post) => {
-        let originalPost = null;
-        if (post.originalPostId) {
-          const originalPostData = post.originalPostId;
-          const originalUser = await fetchUserById(originalPostData.userId);
-          originalPost = {
-            ...originalPostData,
-            userName: originalUser?.name || "Unknown",
-            userAvatar: originalUser?.avatar || defaultImage,
-            postMedia: originalPostData.postMedia || [],
+    try {
+      setLoading(true);
+      const postData = await fetchPosts();
+      if (!Array.isArray(postData) || postData.length === 0) {
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
+  
+      const filteredPosts = userId ? postData.filter((post) => post.userId?._id === userId) : postData;
+  
+      const postsWithUsers = await Promise.all(
+        filteredPosts.map(async (post) => {
+          let originalPost = null;
+          if (post.originalPostId) {
+            const originalPostData = post.originalPostId;
+            const originalUser = await fetchUserById(originalPostData.userId);
+            originalPost = {
+              ...originalPostData,
+              userName: originalUser?.name || "Unknown",
+              userAvatar: originalUser?.avatar || defaultImage,
+              postMedia: originalPostData.postMedia || [],
+            };
+          }
+  
+          const user = await fetchUserById(post.userId._id);
+          return {
+            ...post,
+            userName: user?.name || "Unknown",
+            userAvatar: user?.avatar || defaultImage,
+            originalPost,
           };
-        }
-
-        const user = await fetchUserById(post.userId._id);
-        return {
-          ...post,
-          userName: user?.name || "Unknown",
-          userAvatar: user?.avatar || defaultImage,
-          originalPost,
-        };
-      })
-    );
-
-    const userLikedPosts = postData.reduce((acc, post) => {
-      acc[post._id] = post.likedBy?.includes(userId) || false;
-      return acc;
-    }, {});
-
-    const userRepostedPosts = postData.reduce((acc, post) => {
-      acc[post._id] = post.repostedBy?.includes(userId) || false;
-      return acc;
-    }, {});
-
-    setPosts(postsWithUsers);
-    setLikedPosts(userLikedPosts);
-    setRepostedPosts(userRepostedPosts);
-    setLoading(false);
+        })
+      );
+  
+      const userLikedPosts = filteredPosts.reduce((acc, post) => {
+        acc[post._id] = post.likedBy?.includes(userId) || false;
+        return acc;
+      }, {});
+  
+      const userRepostedPosts = filteredPosts.reduce((acc, post) => {
+        acc[post._id] = post.repostedBy?.includes(userId) || false;
+        return acc;
+      }, {});
+  
+      setPosts(postsWithUsers);
+      setLikedPosts(userLikedPosts);
+      setRepostedPosts(userRepostedPosts);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setLoading(false);
+    }
   };
+  
 
   const handleLikeClick = async (postId) => {
     if (!userId) return;
@@ -462,4 +477,4 @@ const NewsFeed = () => {
   );
 };
 
-export default NewsFeed;
+export default PostList;

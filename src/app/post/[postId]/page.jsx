@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { MessageCircle, Repeat, Heart, Eye } from "lucide-react";
 import RepostModal from "@/app/components/RepostModal/page";
-import styles from "../../components/newsfeed/page.module.css";
+import styles from "../../components/PostList/page.module.css";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ReplyPopup from "@/app/components/replyPopup/page";

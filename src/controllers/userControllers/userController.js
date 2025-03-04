@@ -27,3 +27,18 @@ export async function getUser(userId) {
     return { status: 500, data: { message: "Failed to fetch user" } };
   }
 }
+
+export async function updateUser(userId, updateData) {
+  try {
+    const updatedUser = await User.findByIdAndUpdate(userId, updateData, { new: true });
+
+    if (!updatedUser) {
+      throw new Error("User not found");
+    }
+
+    return updatedUser;
+  } catch (error) {
+    console.error("Error updating user:", error);
+    throw new Error("Database error");
+  }
+}

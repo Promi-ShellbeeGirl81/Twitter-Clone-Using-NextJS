@@ -22,7 +22,7 @@ import { fetchUserIdByEmail } from "@/utils/api/userApi";
 import { fetchPosts, repostPost, updateLikeStatus } from "@/utils/api/postApi";
 import { sendNotification } from "@/utils/api/notificationApi";
 
-const ProfilePosts = () => {
+const UserProfilePosts = () => {
   const [posts, setPosts] = useState();
   const { data: session, status } = useSession();
   const [userId, setUserId] = useState(null);
@@ -35,6 +35,7 @@ const ProfilePosts = () => {
   const [repostedPosts, setRepostedPosts] = useState({});
   const [quotePopupVisible, setQuotePopupVisible] = useState(false);
   const [quotePost, setQuotePost] = useState(null);
+  const { userId: routeUserId } = useParams(); 
 
   const router = useRouter();
 
@@ -42,13 +43,17 @@ const ProfilePosts = () => {
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
   const fetchUserData = useCallback(async () => {
-    if (!session?.user?.email) return;
-    const id = await fetchUserIdByEmail(session.user.email);
+    let id = routeUserId;
+
+    if (!id && session?.user?.email) {
+      id = await fetchUserIdByEmail(session.user.email);
+    }
+
     if (id) {
       setUserId(id);
       fetchPostsData(id);
     }
-  }, [session]);
+  }, [session, routeUserId]);
 
   const fetchPostsData = async (userId) => {
     try {
@@ -457,4 +462,4 @@ const ProfilePosts = () => {
   );
 };
 
-export default ProfilePosts;
+export default UserProfilePosts;
