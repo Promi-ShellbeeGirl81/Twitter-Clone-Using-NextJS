@@ -36,20 +36,18 @@ a {
   color: inherit;
   text-decoration: none;
 }
-
-
 .container{
   display: flex;
   background-color: black;
   color: white;
+  margin-left: 260px;
+  gap: 30px;
 }
 .leftcontainer{
-  margin-left: 70px;
-  margin-right: 250px;
+  margin-left: 50px;
+ margin-right: 150px;
 }
-.middlecontainer{
-  width: 600px;
-}
+
 .rightcontainer{
   width: 100px;
   margin-right: 90px;
@@ -62,12 +60,13 @@ a {
   }
   .container{
       gap: 0px;
+      margin-left: 0px;
   }
   .middlecontainer{
-      margin-left: 70px;
+      margin-left: 50px;
   }
   .leftcontainer{
-    margin-right: 20px;
+    margin-right: 0px;
   }
 }
 

@@ -2,8 +2,8 @@
 .mainContainer {
   justify-content: center;
   align-items: center;
-  margin-top: 180px;
-  margin-left: 200px;
+  margin-top: 140px;
+  
 }
 .container {
   display: flex;
@@ -108,10 +108,11 @@
 }
 .loginFooter {
   color: rgba(255, 255, 255, 0.438);
-  font-size: 14px;
-  gap: 14px;
+  font-size: 13px;
+  gap: 15px;
   display: flex;
   flex-wrap: wrap;
+  width: 2000px;
 }
 .signupButton button {
   color: white;

@@ -1,4 +1,5 @@
 "use client";
+import styles from "./page.module.css";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -32,10 +33,10 @@ export default function HomePage() {
   }
 
   return (
-    <>
+    <div className={styles.container}>
       <FollowButton />
       <StatusUpdate />
       <NewsFeed />
-    </>
+    </div>
   );
 }

@@ -35,7 +35,6 @@ function LayoutContent({ children }) {
       )}
 
       <div className="middlecontainer">{children}</div>
-
       {!hideNavbarAndSidebar && session && (
         <div className="rightcontainer">
           <Sidebar />
