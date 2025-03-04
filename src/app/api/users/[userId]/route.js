@@ -3,27 +3,26 @@ import { getUser } from "@/controllers/userControllers/userController";
 
 export async function GET(req, { params }) {
   console.log("Received params:", params);  
+
+  const userId = params?.userId;  
   
-  let userId = await params.userId; 
-
-  if (typeof userId !== "string") {
-    console.error("userId is not a string, it's:", userId);
-    return NextResponse.json({ message: "Invalid user ID format." }, { status: 400 });
+  if (!userId || typeof userId !== "string") {
+    console.error("Invalid userId:", userId);
+    return NextResponse.json({ message: "Invalid or missing user ID." }, { status: 400 });
   }
 
-  console.log("Received userId before processing:", userId);
-  
-  userId = String(userId).trim(); 
+  console.log("Processing userId:", userId);
 
-  if (!userId) {
-    return NextResponse.json({ message: "User ID is required." }, { status: 400 });
+  try {
+    const { status, data } = await getUser(userId);
+
+    if (!data) {
+      return NextResponse.json({ message: "User not found." }, { status: 404 });
+    }
+
+    return NextResponse.json(data, { status });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    return NextResponse.json({ message: "Internal Server Error." }, { status: 500 });
   }
-
-  const { status, data } = await getUser(userId);
-
-  if (!data) {
-    return NextResponse.json({ message: "User not found." }, { status: 404 });
-  }
-
-  return NextResponse.json(data, { status });
 }

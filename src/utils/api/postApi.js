@@ -43,15 +43,14 @@ export const uploadFilesToCloudinary = async (files) => {
   };
 
   export const fetchPosts = async () => {
-    try {
-      const postRes = await fetch(`/api/posts`);
-      if (!postRes.ok) throw new Error("Failed to fetch posts.");
-      return await postRes.json();
-    } catch (error) {
-      console.error("Error fetching posts:", error.message);
-      return [];
-    }
+    const response = await fetch("/api/posts");
+    const data = await response.json();
+    return data.map((post) => ({
+      ...post,
+      userId: post.userId || {}, 
+    }));
   };
+  
 
   export const fetchPostAndCommentsApi = async (postId) => {
     if (!postId) return { post: null, comments: [], error: "Post ID is required" };

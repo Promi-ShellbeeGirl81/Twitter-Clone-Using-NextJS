@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-import styles from "./page.module.css";
+import styles from "@/app/components/newsfeed/page.module.css";
 import RepostModal from "../RepostModal/page";
 import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
@@ -18,11 +18,11 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import ReplyPopup from "../replyPopup/page";
 import QuotePopup from "../QuotePopup/page";
-import { fetchUserById, fetchUserIdByEmail } from "@/utils/api/userApi";
+import { fetchUserIdByEmail } from "@/utils/api/userApi";
 import { fetchPosts, repostPost, updateLikeStatus } from "@/utils/api/postApi";
 import { sendNotification } from "@/utils/api/notificationApi";
 
-const NewsFeed = () => {
+const ProfilePosts = () => {
   const [posts, setPosts] = useState();
   const { data: session, status } = useSession();
   const [userId, setUserId] = useState(null);
@@ -51,47 +51,41 @@ const NewsFeed = () => {
   }, [session]);
 
   const fetchPostsData = async (userId) => {
-    const postData = await fetchPosts();
-    if (!postData.length) return;
+    try {
+      const postData = await fetchPosts();
 
-    const postsWithUsers = await Promise.all(
-      postData.map(async (post) => {
-        let originalPost = null;
-        if (post.originalPostId) {
-          const originalPostData = post.originalPostId;
-          const originalUser = await fetchUserById(originalPostData.userId);
-          originalPost = {
-            ...originalPostData,
-            userName: originalUser?.name || "Unknown",
-            userAvatar: originalUser?.avatar || defaultImage,
-            postMedia: originalPostData.postMedia || [],
-          };
-        }
+      if (!Array.isArray(postData) || postData.length === 0) {
+        console.warn("No posts found or invalid response format.");
+        setPosts([]);
+        setLoading(false);
+        return;
+      }
 
-        const user = await fetchUserById(post.userId._id);
-        return {
-          ...post,
-          userName: user?.name || "Unknown",
-          userAvatar: user?.avatar || defaultImage,
-          originalPost,
-        };
-      })
-    );
+      const userPosts = postData.filter((post) => post.userId?._id === userId);
 
-    const userLikedPosts = postData.reduce((acc, post) => {
-      acc[post._id] = post.likedBy?.includes(userId) || false;
-      return acc;
-    }, {});
+      setPosts(userPosts);
 
-    const userRepostedPosts = postData.reduce((acc, post) => {
-      acc[post._id] = post.repostedBy?.includes(userId) || false;
-      return acc;
-    }, {});
+      if (userPosts.length > 0) {
+        setLikedPosts(
+          userPosts.reduce((acc, post) => {
+            acc[post._id] = post.likedBy?.includes(userId) || false;
+            return acc;
+          }, {})
+        );
 
-    setPosts(postsWithUsers);
-    setLikedPosts(userLikedPosts);
-    setRepostedPosts(userRepostedPosts);
-    setLoading(false);
+        setRepostedPosts(
+          userPosts.reduce((acc, post) => {
+            acc[post._id] = post.repostedBy?.includes(userId) || false;
+            return acc;
+          }, {})
+        );
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      setLoading(false);
+    }
   };
 
   const handleLikeClick = async (postId) => {
@@ -256,11 +250,12 @@ const NewsFeed = () => {
               repostCount = 0,
               likeCount = 0,
               viewCount = 0,
-              userName,
-              userAvatar,
+              userId,
               createdAt,
               originalPost,
             } = post;
+            const userName = userId?.name || "Unknown User";
+            const userAvatar = userId?.avatar || defaultImage;
 
             const createdAtDate = new Date(createdAt);
             const timeAgo = formatDistanceToNow(createdAtDate, {
@@ -462,4 +457,4 @@ const NewsFeed = () => {
   );
 };
 
-export default NewsFeed;
+export default ProfilePosts;
