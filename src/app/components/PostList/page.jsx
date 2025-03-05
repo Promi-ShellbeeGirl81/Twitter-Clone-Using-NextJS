@@ -22,8 +22,12 @@ import { fetchUserById, fetchUserIdByEmail } from "@/utils/api/userApi";
 import { fetchPosts, repostPost, updateLikeStatus } from "@/utils/api/postApi";
 import { sendNotification } from "@/utils/api/notificationApi";
 
-const PostList = ({ userId }) => {
-  const [posts, setPosts] = useState();
+const PostList = ({
+  userId = null,
+  isProfilePage = false,
+  isHomepage = false,
+}) => {
+  const [posts, setPosts] = useState([]);
   const { data: session, status } = useSession();
   const [likedPosts, setLikedPosts] = useState({});
   const [loading, setLoading] = useState(true);
@@ -40,30 +44,48 @@ const PostList = ({ userId }) => {
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
-    const fetchUserData = useCallback(async () => {
-      if (!userId && session?.user?.email) {
-          const id = await fetchUserIdByEmail(session.user.email);
-          if (id) {
-              fetchPostsData(id);
-          }
+
+  const fetchUserData = useCallback(async () => {
+    if (status !== "authenticated" || !session?.user?.email) return;
+
+    try {
+      const resolvedUserId = await fetchUserIdByEmail(session.user.email);
+      if (isProfilePage) {
+        fetchPostsData(resolvedUserId);
+      } else if (isHomepage) {
+        fetchPostsData(null);
       } else {
-          fetchPostsData(userId);
+        fetchPostsData(userId);
       }
-  }, [session, userId]);
-  
+    } catch (error) {
+      console.error("Error fetching user ID:", error);
+    }
+  }, [status, session, userId, isProfilePage, isHomepage]);
 
   const fetchPostsData = async (userId) => {
+    const currentUserId = await fetchUserIdByEmail(session.user.email);
     try {
       setLoading(true);
+
+      if (!userId) {
+        userId = await fetchUserIdByEmail(session?.user?.email);
+      }
+
       const postData = await fetchPosts();
+      console.log("Fetched posts:", postData);
+
       if (!Array.isArray(postData) || postData.length === 0) {
         setPosts([]);
         setLoading(false);
         return;
       }
-  
-      const filteredPosts = userId ? postData.filter((post) => post.userId?._id === userId) : postData;
-  
+
+      let filteredPosts = postData;
+
+      if (!isHomepage) {
+        filteredPosts = postData.filter((post) => post.userId?._id === userId);
+      }
+
       const postsWithUsers = await Promise.all(
         filteredPosts.map(async (post) => {
           let originalPost = null;
@@ -77,8 +99,8 @@ const PostList = ({ userId }) => {
               postMedia: originalPostData.postMedia || [],
             };
           }
-  
-          const user = await fetchUserById(post.userId._id);
+
+          const user = await fetchUserById(post.userId?._id);
           return {
             ...post,
             userName: user?.name || "Unknown",
@@ -87,17 +109,17 @@ const PostList = ({ userId }) => {
           };
         })
       );
-  
+
       const userLikedPosts = filteredPosts.reduce((acc, post) => {
-        acc[post._id] = post.likedBy?.includes(userId) || false;
+        acc[post._id] = post.likedBy?.includes(currentUserId) || false;
         return acc;
       }, {});
-  
+
       const userRepostedPosts = filteredPosts.reduce((acc, post) => {
-        acc[post._id] = post.repostedBy?.includes(userId) || false;
+        acc[post._id] = post.repostedBy?.includes(currentUserId) || false;
         return acc;
       }, {});
-  
+
       setPosts(postsWithUsers);
       setLikedPosts(userLikedPosts);
       setRepostedPosts(userRepostedPosts);
@@ -106,36 +128,36 @@ const PostList = ({ userId }) => {
       console.error("Error fetching posts:", error);
       setLoading(false);
     }
+
+    console.log("Posts state after setting:", posts);
   };
-  
 
   const handleLikeClick = async (postId) => {
-    if (!userId) return;
+    const currentUserId = await fetchUserIdByEmail(session.user.email);
+    if(!currentUserId) return;
+
     const post = posts.find((p) => p._id === postId);
     if (!post) {
       console.error("Error: Post not found in state.");
       return;
     }
-    const isLiked = likedPosts[postId] ?? false;
-    setLikedPosts((prev) => ({ ...prev, [postId]: !isLiked }));
 
+    const isLiked = likedPosts[postId] ?? false;
+    const updatedLikeCount = isLiked ? post.likeCount - 1 : post.likeCount + 1;
+
+    setLikedPosts((prev) => ({ ...prev, [postId]: !isLiked }));
     setPosts((prevPosts) =>
       prevPosts.map((post) =>
-        post._id === postId
-          ? {
-              ...post,
-              likeCount: isLiked ? post.likeCount - 1 : post.likeCount + 1,
-            }
-          : post
+        post._id === postId ? { ...post, likeCount: updatedLikeCount } : post
       )
     );
 
-    const updatedPost = await updateLikeStatus(postId, userId);
+    const updatedPost = await updateLikeStatus(postId, currentUserId);
     if (!updatedPost) {
-      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
+      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked })); // Revert if update fails
     } else if (!isLiked) {
       await sendNotification({
-        senderId: userId,
+        senderId: currentUserId,
         receiverId: post.userId._id,
         type: "like",
         postId: post._id,
@@ -148,9 +170,10 @@ const PostList = ({ userId }) => {
   }, [status, fetchUserData]);
 
   const handleRepost = async (postId) => {
-    console.log("User and post:", userId, "and", postId);
+    const currentUserId = await fetchUserIdByEmail(session.user.email);
+    if(!currentUserId) return;
 
-    if (!userId || !postId) {
+    if (!postId) {
       console.error("Error: Missing userId or postId for repost.");
       return;
     }
@@ -163,35 +186,34 @@ const PostList = ({ userId }) => {
 
     try {
       const responseData = await repostPost({
-        userId,
+        userId: currentUserId,
         postId,
         isQuote: false,
         quoteText: "",
         postMedia: [],
       });
 
-      if (responseData.message.includes("Undo repost successful")) {
-        setRepostedPosts((prev) => ({ ...prev, [postId]: false }));
+      const updatedRepostCount = responseData.message.includes(
+        "Repost successful"
+      )
+        ? post.repostCount + 1
+        : post.repostCount - 1;
 
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId
-              ? { ...post, repostCount: Math.max(post.repostCount - 1, 0) }
-              : post
-          )
-        );
-      } else if (responseData.message.includes("Repost successful")) {
-        setRepostedPosts((prev) => ({ ...prev, [postId]: true }));
+      setRepostedPosts((prev) => ({
+        ...prev,
+        [postId]: !repostedPosts[postId],
+      }));
+      setPosts((prevPosts) =>
+        prevPosts.map((post) =>
+          post._id === postId
+            ? { ...post, repostCount: updatedRepostCount }
+            : post
+        )
+      );
 
-        setPosts((prevPosts) =>
-          prevPosts.map((post) =>
-            post._id === postId
-              ? { ...post, repostCount: post.repostCount + 1 }
-              : post
-          )
-        );
+      if (responseData.message.includes("Repost successful")) {
         await sendNotification({
-          senderId: userId,
+          senderId: currentUserId,
           receiverId: post.userId._id,
           type: "repost",
           postId: post._id,
@@ -202,8 +224,9 @@ const PostList = ({ userId }) => {
     }
   };
 
-  const handleQuoteClick = (post) => {
-    if (!userId) {
+  const handleQuoteClick = async (post) => {
+    const currentUserId = await fetchUserIdByEmail(session.user.email);
+    if (!currentUserId) {
       console.error("Error: Missing userId for quote repost.");
       return;
     }
@@ -233,6 +256,8 @@ const PostList = ({ userId }) => {
   };
 
   const handleReplySubmit = async (postId) => {
+    const currentUserId = await fetchUserIdByEmail(session.user.email);
+    if (!currentUserId) return;
     const post = posts.find((p) => p._id === postId);
     if (!post) {
       console.error("Error: Post not found in state.");
@@ -246,9 +271,30 @@ const PostList = ({ userId }) => {
       )
     );
     await sendNotification({
-      senderId: userId,
+      senderId: currentUserId,
       receiverId: post.userId._id,
       type: "comment",
+      postId: post._id,
+    });
+  };
+
+  const handleQuoteSubmit = async (postId) => {
+    const post = posts.find((p) => p._id === postId);
+    if (!post) {
+      console.error("Error: Post not found in state.");
+      return;
+    }
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === postId
+          ? { ...post, repostCount: post.repostCount + 1 }
+          : post
+      )
+    );
+    await sendNotification({
+      senderId: currentUserId,
+      receiverId: post.userId._id,
+      type: "repost",
       postId: post._id,
     });
   };
@@ -462,7 +508,7 @@ const PostList = ({ userId }) => {
         <QuotePopup
           post={quotePost}
           onClose={() => setQuotePopupVisible(false)}
-          onQuoteSubmit={handleReplySubmit}
+          onQuoteSubmit={handleQuoteSubmit}
         />
       )}
 

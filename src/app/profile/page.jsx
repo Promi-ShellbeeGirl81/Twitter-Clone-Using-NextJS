@@ -30,7 +30,7 @@ export default function Profile() {
     <div className={style.container}>
       <ProfileInfoHeader />
       <ProfileTab/>
-      <PostList userId={userId} /> 
+      <PostList isProfilePage={true} /> 
     </div>
   );
 }

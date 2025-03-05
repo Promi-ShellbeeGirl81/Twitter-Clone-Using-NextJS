@@ -36,7 +36,7 @@ export default function HomePage() {
     <div className={styles.container}>
       <FollowButton />
       <StatusUpdate />
-      <PostList userId={null} /> 
+      <PostList isHomepage={true} />
     </div>
   );
 }

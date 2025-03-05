@@ -33,8 +33,31 @@ export default function ProfileInfoHeader({ userId = null }) {
     }
   }, [session, userId]);
 
-  const handleFollowToggle = () => {
-    setIsFollowing((prev) => !prev);
+  const handleFollowToggle = async () => {
+    console.log("userdata", userData);
+    try {
+      const response = await fetch("/api/follow", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userIdToFollow: userData._id }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(data.message); // Success message
+
+        // Toggle the follow state based on current state
+        setIsFollowing((prev) => !prev);
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || "Something went wrong.");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An error occurred while following/unfollowing.");
+    }
   };
 
   if (status === "loading" || !userData) {

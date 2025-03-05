@@ -285,6 +285,17 @@ const PostDetails = () => {
     await sendNotification({ senderId: userId, receiverId: post.userId._id, type: "comment" , postId: post._id});
   };
 
+  const handleQuoteSubmit = async(postId) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) =>
+        post._id === postId
+          ? { ...post, repostCount: post.repostCount + 1 }
+          : post
+      )
+    );
+    await sendNotification({ senderId: userId, receiverId: post.userId._id, type: "reposted" , postId: post._id});
+  };
+  
   const closeReplyPopup = () => {
     setReplyPopupVisible(false);
     setSelectedPost(null);
@@ -569,7 +580,7 @@ const PostDetails = () => {
         <QuotePopup
           post={quotePost}
           onClose={() => setQuotePopupVisible(false)}
-          onQuoteSubmit={handleReplySubmit}
+          onQuoteSubmit={handleQuoteSubmit}
         />
       )}
 
