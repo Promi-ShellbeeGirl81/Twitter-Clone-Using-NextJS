@@ -5,7 +5,6 @@ import NotificationMenu from "../components/NotificationMenu/page";
 import { useSession} from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import { fetchNotifications as getNotifications } from "@/utils/api/notificationApi";
 
 export default function Notification() {
@@ -66,7 +65,7 @@ export default function Notification() {
         ) : (
           notifications.map((notification) => (
             <div key={notification._id} className={styles.notificationItem}>
-              <Image className={styles.notificationImage} src = {notification.sender?.image|| defaultImage} alt="notificationImage" width={30} height={30}/>
+              <img className={styles.notificationImage} src = {notification.sender?.profilePic|| defaultImage} alt="notificationImage" width={30} height={30}/>
               <div className={styles.notificationText}>
               <strong>{notification.sender?.name}</strong> 
               {getNotificationMessage(notification)} : 

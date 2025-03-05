@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import ProfileInfoHeader from "@/app/components/ProfileInfoHeader/page";
 import ProfileTab from "../components/ProfileTab/page";
 import PostList from "../components/PostList/page";
-import style from "./page.module.css";
+import style from "@/app/profile/page.module.css";
 import { useState, useEffect } from "react";
 import { fetchUserIdByEmail } from "@/utils/api/userApi";
 
@@ -28,8 +28,8 @@ export default function Profile() {
 
   return (
     <div className={style.container}>
-      <ProfileInfoHeader />
-      <ProfileTab/>
+      <ProfileInfoHeader userId={routeUserId}/>
+      <ProfileTab userId={routeUserId}/>
       <PostList userId={userId} /> 
     </div>
   );

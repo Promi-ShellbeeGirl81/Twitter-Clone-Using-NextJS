@@ -96,6 +96,8 @@
   font-size: 16px;
   height: 60px;
   resize: none;
+  pointer-events: auto;
+  z-index: 999999;
 }
 
 

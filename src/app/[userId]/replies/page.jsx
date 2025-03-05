@@ -2,13 +2,12 @@
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import ProfileInfoHeader from "@/app/components/ProfileInfoHeader/page";
-import ProfileTab from "../components/ProfileTab/page";
-import PostList from "../components/PostList/page";
-import style from "./page.module.css";
+import ProfileTab from "@/app/components/ProfileTab/page";
+import style from "@/app/profile/page.module.css";
 import { useState, useEffect } from "react";
 import { fetchUserIdByEmail } from "@/utils/api/userApi";
 
-export default function Profile() {
+export default function ProfileMedia() {
   const { userId: routeUserId } = useParams(); 
   const { data: session, status } = useSession();
   const [userId, setUserId] = useState(routeUserId || null);
@@ -28,9 +27,9 @@ export default function Profile() {
 
   return (
     <div className={style.container}>
-      <ProfileInfoHeader />
-      <ProfileTab/>
-      <PostList userId={userId} /> 
+      <ProfileInfoHeader userId={routeUserId}/>
+      <ProfileTab userId={routeUserId}/>
+      replies
     </div>
   );
 }
