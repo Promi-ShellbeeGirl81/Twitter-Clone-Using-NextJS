@@ -279,6 +279,7 @@ const PostList = ({
   };
 
   const handleQuoteSubmit = async (postId) => {
+    const currentUserId = await fetchUserIdByEmail(session.user.email);
     const post = posts.find((p) => p._id === postId);
     if (!post) {
       console.error("Error: Post not found in state.");

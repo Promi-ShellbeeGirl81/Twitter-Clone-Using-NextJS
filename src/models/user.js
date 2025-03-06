@@ -36,8 +36,8 @@ const UserSchema = new Schema({
   location: {
     type: String,
   },
-  followers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
-  following: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  followers: [{ type: Schema.Types.ObjectId, ref: 'User' ,  default: [] }],
+  following: [{ type: Schema.Types.ObjectId, ref: 'User' ,  default: [] }],
 });
 
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
