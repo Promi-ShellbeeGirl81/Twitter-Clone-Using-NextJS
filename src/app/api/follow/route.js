@@ -7,15 +7,14 @@ import mongoose from "mongoose";
 
 export async function POST(req) {
   try {
-    const body = await req.json(); // ✅ Ensure body is properly parsed
-    console.log("Request Body:", body); // ✅ Debug: Log the full request body
+    const body = await req.json(); 
+    console.log("Request Body:", body); 
 
-    const { userIdToFollow } = body; // Extract `userIdToFollow`
-    console.log("Extracted userIdToFollow:", userIdToFollow); // ✅ Debug: Ensure it's extracted
+    const { userIdToFollow } = body; 
+    console.log("Extracted userIdToFollow:", userIdToFollow); 
 
-    // ✅ Fix: Use `getServerSession(authOptions)` (No `req`)
     const session = await getServerSession(authOptions);
-    console.log("Session:", session); // ✅ Debug: Ensure session is valid
+    console.log("Session:", session); 
 
     if (!session || !session.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

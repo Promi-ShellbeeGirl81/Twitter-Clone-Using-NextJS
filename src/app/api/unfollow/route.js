@@ -12,7 +12,7 @@ export async function POST(req) {
     const { userIdToUnfollow } = body;
 
     const session = await getServerSession(authOptions);
-    console.log("Session:", session); // ✅ Debug session data
+    console.log("Session:", session); 
 
     if (!session || !session.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

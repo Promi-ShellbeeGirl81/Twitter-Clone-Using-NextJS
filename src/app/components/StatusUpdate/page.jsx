@@ -15,6 +15,7 @@ function StatusUpdate() {
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState([]);
   const [filePreview, setFilePreview] = useState([]);
+  const [profilePic, setProfilePic] = useState(""); 
   const router = useRouter();
 
   useEffect(() => {
@@ -22,6 +23,23 @@ function StatusUpdate() {
       router.push("./");
     }
   }, [session, status, router]);
+  useEffect(() => {
+    if (session) {
+      const fetchProfilePic = async () => {
+        try {
+          const response = await fetch(`/api/users/email/${session.user.email}`);
+          const data = await response.json();
+          if (data && data.profilePic) {
+            setProfilePic(data.profilePic); 
+          }
+        } catch (error) {
+          console.error("Failed to fetch profile pic:", error);
+        }
+      };
+
+      fetchProfilePic();
+    }
+  }, [session]);
 
   if (status === "loading") {
     return (
@@ -109,7 +127,7 @@ function StatusUpdate() {
   return (
     <div className={`${styles.container} ${isActive ? styles.active : ""}`}>
       <div className={styles.mainContainer}>
-        <UserProfileImage imageUrl={session?.user?.image} />
+        <UserProfileImage imageUrl={profilePic} />
         <div className={styles.textContainer}>
           <input
             type="text"

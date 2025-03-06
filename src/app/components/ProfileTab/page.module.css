@@ -1,4 +1,22 @@
-.container{
+.container {
+  display: flex;
+  gap: 20px;
+}
+.followingList ul {
+  list-style: none;
+}
+.followingList img {
+  width: 50px;
+  border-radius: 50%;
+  margin-top: 10px;
+}
+
+.followingList span{
+    margin-top: 10px;
+}
+
+.nameAndImage{
     display: flex;
-    gap: 20px;
+    align-items: center;
+    gap: 10px;
 }

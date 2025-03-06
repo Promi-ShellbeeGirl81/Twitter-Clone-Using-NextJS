@@ -154,7 +154,7 @@ const PostList = ({
 
     const updatedPost = await updateLikeStatus(postId, currentUserId);
     if (!updatedPost) {
-      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked })); // Revert if update fails
+      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked })); 
     } else if (!isLiked) {
       await sendNotification({
         senderId: currentUserId,

@@ -1,3 +1,6 @@
+.mainContainer{
+    margin-left: 30px;
+}
 .container{
     display: flex;
     gap: 60px;

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Bell, Calendar, MoreHorizontal, Search } from "lucide-react";
 import EditProfileModal from "../EditProfileModal/page";
 import { fetchUserIdByEmail } from "@/utils/api/userApi";
+import FollowButton from "../FollowingButton/page";
 
 export default function ProfileInfoHeader({ userId = null }) {
   const { data: session, status } = useSession();
@@ -14,7 +15,7 @@ export default function ProfileInfoHeader({ userId = null }) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [hoveringUnfollow, setHoveringUnfollow] = useState(false);
-  const [fetchedUserId, setFetchedUserId] = useState(null); // ✅ Store fetchedUserId
+  const [fetchedUserId, setFetchedUserId] = useState(null); 
 
   // Redirect to home if not logged in
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function ProfileInfoHeader({ userId = null }) {
     const fetchUserId = async (email) => {
       try {
         const userId = await fetchUserIdByEmail(email);
-        setFetchedUserId(userId); // ✅ Store fetchedUserId in state
+        setFetchedUserId(userId); 
       } catch (err) {
         console.error("Error fetching user ID:", err);
         alert("There was an issue fetching the user ID.");
@@ -67,6 +68,13 @@ export default function ProfileInfoHeader({ userId = null }) {
     fetchUserData(userId || fetchedUserId);
   }, [fetchedUserId, userId]);
 
+  const handleFollowersClick=()=>{
+    router.push(`/${userData._id}/followers`);
+  }
+  const handleFollowingClick=()=>{
+    router.push(`/${userData._id}/following`);
+  }
+
   const handleFollowToggle = async () => {
     if (!session?.user?.email) {
       return alert("You must be logged in to follow or unfollow.");
@@ -82,13 +90,18 @@ export default function ProfileInfoHeader({ userId = null }) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          [isFollowing ? "userIdToUnfollow" : "userIdToFollow"]: userData._id.toString(), // ✅ Correct key based on action
+          [isFollowing ? "userIdToUnfollow" : "userIdToFollow"]: userData._id.toString(), 
         }),
       });
   
       if (response.ok) {
         const data = await response.json();
         console.log(data.message);
+
+        const updatedUserResponse = await fetch(`/api/users/${userId || fetchedUserId}`);
+      if (!updatedUserResponse.ok) throw new Error("Failed to fetch updated user data.");
+      const updatedUserData = await updatedUserResponse.json();
+      setUserData(updatedUserData);
   
         // Fetch updated follow status
         const followStatusResponse = await fetch(
@@ -159,16 +172,12 @@ export default function ProfileInfoHeader({ userId = null }) {
               {isFollowing && (
                 <div className={style.otherIcon}><Bell /></div>
               )}
-              <button
-                className={`${style.followProfile} ${
-                  isFollowing ? (hoveringUnfollow ? style.unfollow : style.following) : style.follow
-                }`}
-                onClick={handleFollowToggle}
-                onMouseEnter={() => isFollowing && setHoveringUnfollow(true)}
-                onMouseLeave={() => setHoveringUnfollow(false)}
-              >
-                {isFollowing ? (hoveringUnfollow ? "Unfollow" : "Following") : "Follow"}
-              </button>
+              <FollowButton
+                isFollowing={isFollowing}
+                handleFollowToggle={handleFollowToggle}
+                hoveringUnfollow={hoveringUnfollow}
+                setHoveringUnfollow={setHoveringUnfollow}
+              />
             </div>
           )}
         </div>
@@ -179,11 +188,11 @@ export default function ProfileInfoHeader({ userId = null }) {
           <Calendar size={15} /> Joined {formattedDate}
         </p>
         <div className={style.profileFollow}>
-          <div className={style.profileFollowItem}>
-            <strong>{userData.following?.length}</strong> <span>Following</span>
+          <div className={style.profileFollowItem} onClick={handleFollowingClick}>
+            <strong>{userData.following?.length || 0}</strong> <span>Following</span>
           </div>
-          <div className={style.profileFollowItem}>
-            <strong>{userData.followers?.length}</strong> <span>Followers</span>
+          <div className={style.profileFollowItem} onClick={handleFollowersClick}>
+            <strong>{userData.followers?.length || 0}</strong> <span>Followers</span>
           </div>
         </div>
       </div>
