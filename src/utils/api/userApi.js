@@ -48,3 +48,22 @@ export const fetchUserById = async (userId) => {
     return null;
   }
 };
+
+export const fetchUserLikedPosts = async (userId) => {
+  try {
+    if (!userId) throw new Error("User ID is missing.");
+
+    const res = await fetch(`/api/users/${userId}/likes`);
+    
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || "Failed to fetch liked posts.");
+    }
+
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching liked posts:", error);
+    return [];
+  }
+};
+

@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import style from "@/app/components/ProfileInfoHeader/page.module.css";
+import style from "./page.module.css";
+import btnstyle from "@/app/components/ProfileInfoHeader/page.module.css";
 
 const FollowButton = ({
   userId,
@@ -11,24 +12,22 @@ const FollowButton = ({
   setHoveringUnfollow,
 }) => {
   return (
+    <div className={btnstyle.profileInfo}>
     <button
+      onClick={() => handleFollowToggle(userId)} 
+      onMouseEnter={() => setHoveringUnfollow(true)}
+      onMouseLeave={() => setHoveringUnfollow(false)}
       className={`${style.followProfile} ${
         isFollowing
           ? hoveringUnfollow
-            ? style.unfollow
-            : style.following
-          : style.follow
+            ? style.unfollow 
+            : style.following 
+          : style.follow 
       }`}
-      onClick={() => handleFollowToggle(userId)} 
-      onMouseEnter={() => isFollowing && setHoveringUnfollow(true)}
-      onMouseLeave={() => setHoveringUnfollow(false)}
     >
-      {isFollowing
-        ? hoveringUnfollow
-          ? "Unfollow"
-          : "Following"
-        : "Follow"}
+      {isFollowing ? (hoveringUnfollow ? "Unfollow" : "Following") : "Follow"}
     </button>
+    </div>
   );
 };
 

@@ -1,0 +1,13 @@
+.container{
+    display: flex;
+    height: 90px;
+   
+}
+.container button{
+    margin-top: 10px;
+    height: 40px;
+}
+.followbn{
+    right: 10px;
+    position: absolute;
+}

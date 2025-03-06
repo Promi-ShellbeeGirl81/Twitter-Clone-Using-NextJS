@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import ownstyles from "@/app/components/ProfileTab/page.module.css";
 import FollowButton from "../FollowingButton/page"; 
 import { useSession } from "next-auth/react";
+import { fetchUserIdByEmail } from "@/utils/api/userApi";
+import styles from "./page.module.css";
 
 const UserList = ({ endpoint, title, profilePic }) => {
   const { data: session, status } = useSession();
@@ -13,21 +15,59 @@ const UserList = ({ endpoint, title, profilePic }) => {
   const [hoveringUnfollow, setHoveringUnfollow] = useState({});
   const [fetchedUserId, setFetchedUserId] = useState(null);
 
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      if (!session?.user?.email) {
+        console.warn("Session email not found, skipping user ID fetch.");
+        return;
+      }
+  
+      try {
+        const userId = await fetchUserIdByEmail(session.user.email);
+        if (userId) {
+          console.log("Fetched user ID:", userId);
+          setFetchedUserId(userId);
+        } else {
+          console.warn("User ID fetch returned null.");
+        }
+      } catch (err) {
+        console.error("Error fetching user ID:", err);
+      }
+    };
+  
+    fetchUserId();
+  }, [session]);
+  
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setLoading(true);
         const res = await fetch(endpoint);
-        if (res.ok) {
-          const data = await res.json();
-          console.log("Fetched data:", data);
-          if (title === "Followers") {
-            setUsers(data.followers || []);
-          } else if (title === "Following") {
-            setUsers(data.following || []);
-          }
-        } else {
-          console.error(`Failed to fetch ${title.toLowerCase()} users.`);
+        if (!res.ok) throw new Error(`Failed to fetch ${title.toLowerCase()} users.`);
+        const data = await res.json();
+        
+        // Set users based on whether the list is followers or following
+        const userList = title === "Followers" ? data.followers || [] : data.following || [];
+        setUsers(userList);
+  
+        // Fetch follow status for each user
+        if (fetchedUserId) {
+          const followStatuses = {};
+          await Promise.all(userList.map(async (user) => {
+            try {
+              const followStatusRes = await fetch(
+                `/api/is-following?userId=${user._id}&followerId=${fetchedUserId}`
+              );
+              const followStatusData = await followStatusRes.json();
+              followStatuses[user._id] = followStatusData.isFollowing;
+            } catch (err) {
+              console.error(`Error fetching follow status for user ${user._id}:`, err);
+            }
+          }));
+  
+          setIsFollowing(followStatuses); // Update follow status for all users
         }
       } catch (err) {
         console.error(`Error fetching ${title.toLowerCase()} users:`, err);
@@ -35,19 +75,18 @@ const UserList = ({ endpoint, title, profilePic }) => {
         setLoading(false);
       }
     };
-
-    fetchUsers();
-  }, [endpoint, title]);
+  
+    if (fetchedUserId) {
+      fetchUsers();
+    }
+  }, [endpoint, title, fetchedUserId]);  
 
 
   const handleFollowToggle = async (userId) => {
     if (!session?.user?.email) {
       return alert("You must be logged in to follow or unfollow.");
     }
-    if (!fetchedUserId) {
-      return alert("User ID is still loading. Please wait.");
-    }
-
+  
     try {
       const response = await fetch(isFollowing[userId] ? "/api/unfollow" : "/api/follow", {
         method: "POST",
@@ -58,16 +97,18 @@ const UserList = ({ endpoint, title, profilePic }) => {
           [isFollowing[userId] ? "userIdToUnfollow" : "userIdToFollow"]: userId.toString(),
         }),
       });
-
+  
       if (response.ok) {
         const data = await response.json();
         console.log(data.message);
-
+  
+        // Optimistically update UI before refetching follow status
         setIsFollowing((prev) => ({
           ...prev,
           [userId]: !prev[userId], 
         }));
-
+  
+        // Fetch updated follow status
         const followStatusResponse = await fetch(
           `/api/is-following?userId=${userId}&followerId=${fetchedUserId}`
         );
@@ -85,6 +126,11 @@ const UserList = ({ endpoint, title, profilePic }) => {
       alert("An error occurred while following/unfollowing.");
     }
   };
+  
+  
+  const defaultImage =
+  "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
+
 
   if (loading) {
     return <div>Loading {title}...</div>;
@@ -99,16 +145,19 @@ const UserList = ({ endpoint, title, profilePic }) => {
       <ul>
         {users.map((user) => (
           <li key={user._id} className={ownstyles.followingUser}>
+            <div className={styles.container}>
             <div className={ownstyles.nameAndImage}>
               <img
-                src={profilePic || "https://via.placeholder.com/50"}
+                src={user.profilePic || defaultImage}
                 alt={user.name || "User"}
                 className={ownstyles.followingUserImage}
               />
               <span>{user.name}</span>
+              </div>
+              <div className={styles.followbn}>
               <FollowButton
-                userId={user._id} // Pass user._id to FollowButton
-                isFollowing={isFollowing[user._id] || false} // Track follow status per user
+                userId={user._id} 
+                isFollowing={isFollowing[user._id] || false} 
                 handleFollowToggle={handleFollowToggle}
                 hoveringUnfollow={hoveringUnfollow[user._id] || false}
                 setHoveringUnfollow={(isHovering) =>
@@ -118,7 +167,9 @@ const UserList = ({ endpoint, title, profilePic }) => {
                   }))
                 }
               />
+              </div>
             </div>
+           
           </li>
         ))}
       </ul>
