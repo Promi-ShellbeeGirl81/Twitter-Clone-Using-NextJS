@@ -44,7 +44,6 @@ const PostList = ({
   const defaultImage =
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
-
   const fetchUserData = useCallback(async () => {
     if (status !== "authenticated" || !session?.user?.email) return;
 
@@ -95,7 +94,7 @@ const PostList = ({
             originalPost = {
               ...originalPostData,
               userName: originalUser?.name || "Unknown",
-              userAvatar: originalUser?.avatar || defaultImage,
+              userAvatar: originalUser?.profilePic || defaultImage,
               postMedia: originalPostData.postMedia || [],
             };
           }
@@ -104,7 +103,7 @@ const PostList = ({
           return {
             ...post,
             userName: user?.name || "Unknown",
-            userAvatar: user?.avatar || defaultImage,
+            userAvatar: user?.profilePic || defaultImage,
             originalPost,
           };
         })
@@ -134,7 +133,7 @@ const PostList = ({
 
   const handleLikeClick = async (postId) => {
     const currentUserId = await fetchUserIdByEmail(session.user.email);
-    if(!currentUserId) return;
+    if (!currentUserId) return;
 
     const post = posts.find((p) => p._id === postId);
     if (!post) {
@@ -154,7 +153,7 @@ const PostList = ({
 
     const updatedPost = await updateLikeStatus(postId, currentUserId);
     if (!updatedPost) {
-      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked })); 
+      setLikedPosts((prev) => ({ ...prev, [postId]: isLiked }));
     } else if (!isLiked) {
       await sendNotification({
         senderId: currentUserId,
@@ -171,7 +170,7 @@ const PostList = ({
 
   const handleRepost = async (postId) => {
     const currentUserId = await fetchUserIdByEmail(session.user.email);
-    if(!currentUserId) return;
+    if (!currentUserId) return;
 
     if (!postId) {
       console.error("Error: Missing userId or postId for repost.");
@@ -349,7 +348,15 @@ const PostList = ({
                   )}
 
                   <div className={styles.userNames}>
-                    <h3>{userName}</h3>
+                    <h3
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        router.push(`/${post.userId?._id}`);
+                      }}
+                      style={{ cursor: "pointer"}} 
+                    >
+                      {userName}
+                    </h3>
                     <h5>@{userName}</h5>
                     <h5>{timeAgo}</h5>
                   </div>
@@ -361,13 +368,21 @@ const PostList = ({
                   <div className={styles.originalPost}>
                     <div className={styles.userInfo}>
                       <Image
-                        src={originalPost.userAvatar}
+                        src={originalPost.userAvatar || defaultImage}
                         width={30}
                         height={30}
                         alt="Original user avatar"
                       />
                       <div className={styles.userNames}>
-                        <h4>{originalPost.userName}</h4>
+                      <h4
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        router.push(`/${originalPost.userId}`);
+                      }}
+                      style={{ cursor: "pointer"}} 
+                    >
+                      {userName}
+                    </h4>
                       </div>
                     </div>
 

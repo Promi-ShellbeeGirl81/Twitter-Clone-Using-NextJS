@@ -64,7 +64,7 @@ const PostDetails = () => {
               originalPost = {
                 ...originalPost,
                 userName: originalUser.name || "Unknown",
-                userAvatar: originalUser.avatar || defaultImage,
+                userAvatar: originalUser.profilePic || defaultImage,
               };
             }
           }
@@ -318,7 +318,15 @@ const PostDetails = () => {
             className={styles.userImage}
           />
           <div className={styles.userNames}>
-            <h3>{post.userId.name}</h3>
+          <h3
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        router.push(`/${post.userId?._id}`);
+                      }}
+                      style={{ cursor: "pointer"}} 
+                    >
+                      {post.userId.name}
+                    </h3>
             <h5>@{post.userId.name}</h5>
           </div>
         </div>
@@ -365,7 +373,15 @@ const PostDetails = () => {
                 alt="Original user avatar"
               />
               <div className={styles.userNames}>
-                <h4>{originalPost.userName}</h4>
+              <h4
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        router.push(`/${originalPost.userId}`);
+                      }}
+                      style={{ cursor: "pointer"}} 
+                    >
+                      {originalPost.userName}
+                    </h4>
               </div>
             </div>
             <p>{originalPost.postText || ""}</p>
@@ -452,14 +468,22 @@ const PostDetails = () => {
           >
             <div className={styles.userInfo}>
               <Image
-                src={comment.userId?.avatar || defaultImage}
+                src={comment.userId?.profilePic || defaultImage}
                 width={35}
                 height={32}
                 alt="User profile"
                 className={styles.userImage}
               />
               <div className={styles.userNames}>
-                <h3>{comment.userId?.name}</h3>
+              <h4
+                      onClick={(e) => {
+                        e.stopPropagation(); 
+                        router.push(`/${comment.userId?._id}`);
+                      }}
+                      style={{ cursor: "pointer"}} 
+                    >
+                      {comment.userId.name}
+                    </h4>
                 <h5>@{comment.userId?.name}</h5>
               </div>
             </div>
