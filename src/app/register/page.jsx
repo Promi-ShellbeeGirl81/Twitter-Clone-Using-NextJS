@@ -48,42 +48,52 @@ export default function RegisterModal() {
   const handleSignUp = async (e) => {
     e.preventDefault();
     setPending(true);
-  
-    if (!form.name || !form.email || !form.password || !selectedMonth || !selectedDay || !selectedYear) {
+
+    if (
+      !form.name ||
+      !form.email ||
+      !form.password ||
+      !selectedMonth ||
+      !selectedDay ||
+      !selectedYear
+    ) {
       setErrors("Please fill all the required fields.");
       setPending(false);
       return;
     }
-  
-    const fullDOB = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+
+    const fullDOB = `${selectedYear}-${String(selectedMonth).padStart(
+      2,
+      "0"
+    )}-${String(selectedDay).padStart(2, "0")}`;
     const updatedForm = { ...form, dateOfBirth: fullDOB };
-  
+
     try {
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedForm),
       });
-  
-      const result = await res.json();
-  
       if (res.ok) {
-        console.log("User created successfully:", result);
-  
+        console.log("User created successfully:", res);
+
         const signInResult = await signIn("credentials", {
           redirect: false,
-          identifier: form.email, 
+          identifier: form.email,
           password: form.password,
         });
-  
+        console.log("signinres: ", signInResult);
+
         if (signInResult?.ok) {
-          router.replace("/home"); 
+          router.push("/home");
         } else {
           console.error("Sign-in failed:", signInResult);
           setErrors("Sign in failed. Please try logging in manually.");
         }
       } else {
-        setErrors(result.message || "Something went wrong during registration.");
+        setErrors(
+          result.message || "Something went wrong during registration."
+        );
       }
     } catch (error) {
       console.log("Error:", error);
@@ -92,8 +102,7 @@ export default function RegisterModal() {
       setPending(false);
     }
   };
-    
-  
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -118,13 +127,19 @@ export default function RegisterModal() {
 
     if (name === "password") {
       if (!value.trim()) {
-        setErrors((prev) => ({ ...prev, password: "Password cannot be empty" }));
+        setErrors((prev) => ({
+          ...prev,
+          password: "Password cannot be empty",
+        }));
       } else if (value.length < 8) {
-        setErrors((prev) => ({ ...prev, password: "Password must be at least 8 characters long" }));
+        setErrors((prev) => ({
+          ...prev,
+          password: "Password must be at least 8 characters long",
+        }));
       } else {
         setErrors((prev) => ({ ...prev, password: "" }));
       }
-    }    
+    }
   };
 
   const isFormValid =
@@ -190,9 +205,9 @@ export default function RegisterModal() {
           {step === 1 && (
             <>
               <div className={styles.headerIcon}>
-                <Link className={styles.closeButton} href="/"><button>
-                  &times;
-                </button></Link>
+                <Link className={styles.closeButton} href="/">
+                  <button>&times;</button>
+                </Link>
                 <Image
                   className={styles.headerLogo}
                   src="/images/logo.png"

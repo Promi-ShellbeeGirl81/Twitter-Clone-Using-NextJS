@@ -1,4 +1,4 @@
-import { getUserFromOAuth } from "../repositories/authRepository"; 
+import { getUserFromOAuth , getUserByCredentials} from "../repositories/authRepository"; 
 
 export const handleOAuthLogin = async (account, profile) => {
   const user = await getUserFromOAuth(account, profile);

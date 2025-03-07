@@ -15,6 +15,7 @@ export const getUserFromOAuth = async (account, profile) => {
       image: profile.picture || profile.image,
       provider: account.provider,
     });
+  
     console.log("New user created:", existingUser);
   } else {
     console.log("Existing user found:", existingUser);
@@ -25,6 +26,7 @@ export const getUserFromOAuth = async (account, profile) => {
 
 export const getUserByCredentials = async (credentials) => {
   await connectToDatabase();
+  console.log("creden", credentials);
 
   const user = await User.findOne({
     $or: [{ email: credentials.identifier }, { name: credentials.identifier }],

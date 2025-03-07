@@ -14,8 +14,11 @@ export const registerUser = async ({ name, email, dateOfBirth, password }) => {
       throw new Error("Invalid email format");
     }
 
-    if (password.length < 6) {
-      throw new Error("Password must be at least 6 characters");
+    if (password.length < 8) {
+      throw new Error("Password must be at least 8 characters long");
+    }
+    if (!Date.parse(dateOfBirth)) {
+      throw new Error("Invalid date of birth format");
     }
 
     await connectToDatabase();
@@ -28,11 +31,11 @@ export const registerUser = async ({ name, email, dateOfBirth, password }) => {
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const newUser = new User({
+      _id: new mongoose.Types.ObjectId(),
       name,
       email,
-      dateOfBirth,
+      dateOfBirth: new Date(dateOfBirth), 
       password: hashedPassword,
-      id: new mongoose.Types.ObjectId(),
     });
 
     await newUser.save();
@@ -42,3 +45,4 @@ export const registerUser = async ({ name, email, dateOfBirth, password }) => {
     throw new Error(error.message);
   }
 };
+

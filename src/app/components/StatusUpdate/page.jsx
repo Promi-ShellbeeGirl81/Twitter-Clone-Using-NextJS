@@ -123,11 +123,14 @@ function StatusUpdate() {
       setUploading(false);
     }
   };
+  const defaultImage =
+  "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
+
 
   return (
     <div className={`${styles.container} ${isActive ? styles.active : ""}`}>
       <div className={styles.mainContainer}>
-        <UserProfileImage imageUrl={profilePic} />
+        <UserProfileImage imageUrl={profilePic || defaultImage} />
         <div className={styles.textContainer}>
           <input
             type="text"
