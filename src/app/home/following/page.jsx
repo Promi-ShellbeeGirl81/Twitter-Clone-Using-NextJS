@@ -1,12 +1,13 @@
 "use client";
+import styles from "@/app/home/page.module.css";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import NewsFeed from "@/app/components/newsfeed/page";
 import FollowButton from "@/app/components/FollowButton/page";
 import StatusUpdate from "@/app/components/StatusUpdate/page";
+import PostList from "@/app/components/PostList/page";
 
-export default function HomeFollowing() {
+export default function HomePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -32,10 +33,10 @@ export default function HomeFollowing() {
   }
 
   return (
-    <>
-    <FollowButton/>
-    <StatusUpdate/>
-      <NewsFeed />
-    </>
+    <div className={styles.container}>
+      <FollowButton />
+      <StatusUpdate />
+      <PostList isHomepage={true} />
+    </div>
   );
 }
