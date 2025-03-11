@@ -1,0 +1,22 @@
+.form {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  
+  .input {
+    flex: 1;
+    padding: 8px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+  }
+  
+  .button {
+    padding: 8px;
+    border-radius: 8px;
+    background-color: #3b82f6;
+    color: white;
+    cursor: pointer;
+  }
+  
