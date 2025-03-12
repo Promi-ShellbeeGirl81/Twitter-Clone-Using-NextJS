@@ -1,49 +1,48 @@
 .messageContainer {
-    display: flex;
-    margin-bottom: 12px;
-  }
-  
-  .messageSystem {
-    justify-content: center;
-  }
-  
-  .messageOwn {
-    justify-content: flex-end;
-  }
-  
-  .messageOther {
-    justify-content: flex-start;
-  }
-  
-  .messageBox {
-    max-width: 240px;
-    padding: 8px 16px;
-    border-radius: 8px;
-  }
-  
-  .messageSystemBox {
-    background-color: #2d2d2d;
-    color: white;
-    text-align: center;
-    font-size: 12px;
-  }
-  
-  .messageOwnBox {
-    background-color: #3b82f6;
-    color: white;
-  }
-  
-  .messageOtherBox {
-    background-color: white;
-    color: black;
-  }
-  
-  .sender {
-    font-size: 14px;
-    font-weight: bold;
-  }
-  
-  .message {
-    font-size: 14px;
-  }
-  
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.messageSystem {
+  justify-content: center;
+}
+
+.messageOwn {
+  justify-content: flex-end;
+}
+
+.messageOther {
+  justify-content: flex-start;
+}
+
+.messageBox {
+  max-width: 240px;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.messageSystemBox {
+  background-color: #2d2d2d;
+  color: white;
+  text-align: center;
+  font-size: 12px;
+}
+
+.messageOwnBox {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.messageOtherBox {
+  background-color: white;
+  color: black;
+}
+
+.sender {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.message {
+  font-size: 14px;
+}

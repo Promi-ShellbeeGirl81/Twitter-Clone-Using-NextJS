@@ -26,7 +26,7 @@ app.prepare().then(() => {
     socket.on("message", ({ room, message, sender }) => {
       if (message.trim()) {
         console.log(`Message from ${sender} in room ${room}: ${message}`);
-        io.in(room).emit("message", { sender, message });
+        socket.broadcast.to(room).emit("message", { sender, message });
       }
     });
 

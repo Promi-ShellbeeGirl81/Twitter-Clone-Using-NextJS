@@ -6,6 +6,7 @@
     "dev": "next dev --turbopack",
     "dev:socket": "node server.js",
     "build": "next build",
+    "build:socket": "next build && node server.js",
     "start": "next start",
     "lint": "next lint"
   },
