@@ -21,6 +21,7 @@ function LayoutContent({ children }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const hideNavbarAndSidebar = pathname === "/";
+  const hideRightContainer = pathname.startsWith("/messages");
 
   if (status === "loading") {
     return <div>Loading...</div>;
@@ -35,7 +36,7 @@ function LayoutContent({ children }) {
       )}
 
       <div className="middlecontainer">{children}</div>
-      {!hideNavbarAndSidebar && session && (
+      {!hideNavbarAndSidebar && !hideRightContainer && session && (
         <div className="rightcontainer">
           <Sidebar />
         </div>

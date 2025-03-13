@@ -8,11 +8,11 @@ import ChatMessage from "@/app/components/ChatMessage/page";
 import { fetchUserIdByEmail, fetchUserById } from "@/utils/api/userApi";
 import styles from "./page.module.css";
 
-export default function ChatRoom() {
-  const { senderId, receiverId } = useParams();
+export default function ChatRoom({ selectedUser }) {
+  const { senderId } = useParams();
   const { data: session } = useSession();
   const [messages, setMessages] = useState([]);
-  const [receiver, setReceiver] = useState(null);
+  const [receiver, setReceiver] = useState(selectedUser);
   const [userId, setUserId] = useState(null);
   const [users, setUsers] = useState({});
   const [roomId, setRoomId] = useState("");
@@ -29,35 +29,40 @@ export default function ChatRoom() {
     getUserId();
   }, [session?.user?.email]);
 
-  // Fetch receiver details
+  // Fetch receiver details if not provided by selectedUser
   useEffect(() => {
-    if (!receiverId) return;
-    const fetchReceiver = async () => {
-      try {
-        const res = await fetch(`/api/users/${receiverId}`);
-        const data = await res.json();
-        if (res.ok) {
-          setReceiver(data);
-          setUsers((prev) => ({ ...prev, [receiverId]: data.name }));
-        } else {
-          console.error("Error fetching receiver:", data.message);
+    if (selectedUser) {
+      setReceiver(selectedUser);
+    } else if (selectedUser?._id) {
+      const fetchReceiver = async () => {
+        try {
+          const res = await fetch(`/api/users/${selectedUser._id}`);
+          const data = await res.json();
+          if (res.ok) {
+            setReceiver(data);
+            setUsers((prev) => ({ ...prev, [selectedUser._id]: data.name }));
+          } else {
+            console.error("Error fetching receiver:", data.message);
+          }
+        } catch (error) {
+          console.error("Error fetching receiver:", error);
         }
-      } catch (error) {
-        console.error("Error fetching receiver:", error);
-      }
-    };
-    fetchReceiver();
-  }, [receiverId]);
+      };
+      fetchReceiver();
+    }
+  }, [selectedUser]);
 
   // Fetch chat history
   useEffect(() => {
-    if (!senderId || !receiverId) return;
+    if (!userId || !selectedUser?._id) return;
     const fetchMessages = async () => {
       try {
         const res = await fetch(
-          `/api/messages?sender=${senderId}&receiver=${receiverId}`
+          `/api/messages?sender=${userId}&receiver=${selectedUser._id}`
         );
         const data = await res.json();
+        console.log("Server response:", res);
+        console.log("Response data:", data);
         if (res.ok) {
           setMessages(data);
           data.forEach((msg) => fetchUserDetails(msg.sender));
@@ -69,12 +74,12 @@ export default function ChatRoom() {
       }
     };
     fetchMessages();
-  }, [senderId, receiverId]);
+  }, [userId, selectedUser?._id]);
 
   // Room ID generation and socket handling
   useEffect(() => {
-    if (!userId || !receiverId) return;
-    const roomId = [userId, receiverId].sort().join("_");
+    if (!userId || !selectedUser?._id) return;
+    const roomId = [userId, selectedUser._id].sort().join("_");
     setRoomId(roomId);
     console.log("Calculated roomId:", roomId);
 
@@ -103,11 +108,11 @@ export default function ChatRoom() {
       socket.off("connect", handleSocketConnect);
       socket.off("message", handleIncomingMessage);
     };
-  }, [userId, receiverId]);
+  }, [userId, selectedUser?._id]);
 
   // Listen for user-joined event
   useEffect(() => {
-    if (!userId || !receiverId) return;
+    if (!userId || !selectedUser?._id) return;
     const handleUserJoined = (message) => {
       console.log("User joined event received:", message);
       setMessages((prev) => [...prev, { sender: "system", message }]);
@@ -116,25 +121,25 @@ export default function ChatRoom() {
     return () => {
       socket.off("user_joined", handleUserJoined);
     };
-  }, [userId, receiverId]);
+  }, [userId, selectedUser?._id]);
 
   // Fetch both sender and receiver details
   useEffect(() => {
-    if (!senderId || !receiverId) return;
+    if (!userId || !selectedUser?._id) return;
     const fetchUsersDetails = async () => {
       try {
-        const senderDetails = await fetchUserById(senderId);
-        const receiverDetails = await fetchUserById(receiverId);
+        const senderDetails = await fetchUserById(userId);
+        const receiverDetails = await fetchUserById(selectedUser._id);
         setUsers({
-          [senderId]: senderDetails.name,
-          [receiverId]: receiverDetails.name,
+          [userId]: senderDetails.name,
+          [selectedUser._id]: receiverDetails.name,
         });
       } catch (error) {
         console.error("Error fetching users:", error);
       }
     };
     fetchUsersDetails();
-  }, [senderId, receiverId]);
+  }, [userId, selectedUser?._id]);
 
   const fetchUserDetails = async (userId) => {
     if (!users[userId]) {
@@ -159,7 +164,7 @@ export default function ChatRoom() {
     const messageData = {
       messageContent: message.trim(),
       sender: userId,
-      receiver: receiverId,
+      receiver: receiver._id, 
       messageType: "text",
     };
     console.log("Sending message:", messageData, roomId);
@@ -167,7 +172,7 @@ export default function ChatRoom() {
       room: roomId,
       message: messageData.messageContent,
       sender: userId,
-      receiver: receiverId,
+      receiver: receiver._id, // Use receiver._id instead of receiverId
     });
     createNewMessage(messageData);
   };

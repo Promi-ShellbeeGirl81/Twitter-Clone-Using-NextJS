@@ -1,63 +1,193 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    margin-top: 24px;
-    width: 100%;
+  display: flex;
+  margin-left: 10px;
+  width: 700px;
+  background-color: #000;
+  color: #fff;
+  height: 100vh;
+  border: 1px solid rgba(255,255,255, 0.2);
+  padding: 12px;
+  gap: 80px;
+}
 
-  }
-  
-  .formContainer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+@media (max-width: 768px) {
+  .container {
     width: 100%;
-    max-width: 768px;
-    margin: 0 auto;
+    padding: 0;
+    gap: 0;
   }
-  
-  .heading {
-    margin-bottom: 16px;
-    font-size: 24px;
-    font-weight: bold;
+  .sidebar {
+    display: none;
   }
-  
-  .inputField {
+  .chatContainer {
     width: 100%;
-    padding: 8px;
-    margin-bottom: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
   }
-  
-  .button {
-    width: 100%;
-    background-color: #3b82f6;
-    color: white;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .roomContainer {
-    width: 100%;
-    max-width: 768px;
-    margin: 0 auto;
-  }
-  
-  .roomHeading {
-    margin-bottom: 16px;
-    font-size: 24px;
-    font-weight: bold;
-  }
-  
-  .messagesContainer {
-    height: 500px;
-    overflow-y: auto;
-    padding: 16px;
-    margin-bottom: 16px;
-    background-color: #f1f5f9;
-    border: 2px solid #ccc;
-    border-radius: 8px;
-  }
-  
+}
+
+.headContainer{
+  display: flex;
+  gap: 490px;
+  margin-top: 10px;
+}
+
+.icon{
+  display: flex;
+  gap: 18px;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.heading {
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.inputField {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #333;
+  color: #fff;
+}
+
+.button {
+  width: 100%;
+  background-color: #1d9bf0;
+  color: white;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.roomContainer {
+  width: 100%;
+  max-width: 768px;
+  margin: 0 auto;
+}
+
+.roomHeading {
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.messagesContainer {
+  height: 500px;
+  overflow-y: auto;
+  padding: 16px;
+  margin-bottom: 16px;
+  background-color: #1a1a1a;
+  border: 2px solid #333;
+  border-radius: 8px;
+}
+
+.usersList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 8px;
+}
+
+.userItem {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.userItem:hover {
+  background-color: rgba(255,255,255, 0.1);
+}
+
+.userItem img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.userItem .userInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.userItem .userInfo .userName {
+  font-weight: bold;
+  color: #fff;
+}
+
+.userItem .userInfo .userHandle {
+  color: #888;
+  font-size: 14px;
+}
+
+.userItem .userInfo .lastMessage {
+  color: #ccc;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.userItem .userInfo .lastMessageTime {
+  color: #888;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.searchRow {
+  display: flex;
+  gap: 10px;
+}
+
+.searchContainer {
+  flex-grow: 1;
+  padding: 10px;
+  margin-bottom: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 18px;
+  background-color: transparent;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.3s;
+  display: flex;
+  gap: 5px;
+  align-items: center; 
+}
+
+.searchBox {
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  color: white;
+  caret-color: white;
+}
+
+.searchBox:focus {
+  border: none;
+}
+
+.searchContainer:focus-within {
+  border-color: #1d9bf0;
+}
+
+.searchContainer svg {
+  pointer-events: none; 
+}
+
+.arrowIcon {
+  transition: opacity 0.3s;
+  margin-top: 12px;
+}
