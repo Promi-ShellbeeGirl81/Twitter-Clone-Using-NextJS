@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { socket } from "@/lib/socketClient"; 
+import { socket } from "@/lib/socketClient";
 import ChatForm from "@/app/components/ChatForm/page";
 import ChatMessage from "@/app/components/ChatMessage/page";
 import { fetchUserIdByEmail, fetchUserById } from "@/utils/api/userApi";
@@ -16,6 +16,8 @@ export default function ChatRoom() {
   const [userId, setUserId] = useState(null);
   const [users, setUsers] = useState({});
   const [roomId, setRoomId] = useState("");
+  const defaultImage =
+    "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
 
   // Get the current user's ID by email
   useEffect(() => {
@@ -83,11 +85,12 @@ export default function ChatRoom() {
     };
 
     const handleIncomingMessage = (data) => {
-      if (data.sender !== userId) {
-        console.log("Received message:", data);
-        setMessages((prev) => [...prev, { ...data, messageContent: data.message }]);
-        fetchUserDetails(data.sender);
-      }
+      console.log("Message event received:", data);
+      setMessages((prev) => [
+        ...prev,
+        { ...data, messageContent: data.message },
+      ]);
+      fetchUserDetails(data.sender);
     };
 
     if (socket.connected) {
@@ -106,11 +109,8 @@ export default function ChatRoom() {
   useEffect(() => {
     if (!userId || !receiverId) return;
     const handleUserJoined = (message) => {
-      console.log("User joined:", message);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "system", messageContent: message }
-      ]);
+      console.log("User joined event received:", message);
+      setMessages((prev) => [...prev, { sender: "system", message }]);
     };
     socket.on("user_joined", handleUserJoined);
     return () => {
@@ -163,8 +163,12 @@ export default function ChatRoom() {
       messageType: "text",
     };
     console.log("Sending message:", messageData, roomId);
-    socket.emit("message", { room: roomId, message: messageData.messageContent, sender: userId });
-    setMessages((prev) => [...prev, { ...messageData, sender: userId }]);
+    socket.emit("message", {
+      room: roomId,
+      message: messageData.messageContent,
+      sender: userId,
+      receiver: receiverId,
+    });
     createNewMessage(messageData);
   };
 
@@ -205,7 +209,22 @@ export default function ChatRoom() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.roomHeading}>Chat with {receiver?.name}</h1>
+      <div className={styles.roomHeading}>
+        <img
+          className={styles.img}
+          src={receiver?.profilePic || defaultImage}
+        />
+        <h1>{receiver?.name}</h1>
+        <p className={styles.para}>@ {receiver?.email}</p>
+        <p className={styles.para}>
+          Joined{" "}
+          {new Date(receiver?.joinedDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+          })}
+          <span>.</span> {receiver?.followers.length} Followers
+        </p>
+      </div>
       <div className={styles.messagesContainer}>
         {messages.length > 0 ? (
           messages.map((msg, index) => (

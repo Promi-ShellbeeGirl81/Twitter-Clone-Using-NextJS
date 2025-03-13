@@ -1,6 +1,7 @@
 .messageContainer {
   display: flex;
   margin-bottom: 12px;
+ 
 }
 
 .messageSystem {
@@ -16,9 +17,22 @@
 }
 
 .messageBox {
-  max-width: 240px;
-  padding: 8px 16px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 14px;
+  word-wrap: break-word;
+  max-width: 300px;
+  background-color: #222; /* Dark gray */
+  color: white;
+  display: inline-block;
+  position: relative;
+  border-bottom-left-radius: 4px; /* Less rounded on bottom-left */
+}
+
+.messageOwnBox {
+  background-color: #1d9bf0; 
+  color: white;
+
 }
 
 .messageSystemBox {
@@ -28,10 +42,6 @@
   font-size: 12px;
 }
 
-.messageOwnBox {
-  background-color: #3b82f6;
-  color: white;
-}
 
 .messageOtherBox {
   background-color: white;

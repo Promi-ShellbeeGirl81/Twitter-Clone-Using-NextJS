@@ -20,13 +20,15 @@ app.prepare().then(() => {
       socket.join(room);
       console.log(`User ${username} joined room ${room}`);
       io.to(room).emit("user_joined", `${username} joined room`);
+      console.log(`Emitted user_joined event to room ${room}`);
       console.log(`Users in room ${room}:`, io.sockets.adapter.rooms.get(room));
     });
 
     socket.on("message", ({ room, message, sender }) => {
       if (message.trim()) {
         console.log(`Message from ${sender} in room ${room}: ${message}`);
-        socket.broadcast.to(room).emit("message", { sender, message });
+        io.in(room).emit("message", { sender, message });
+        console.log(`Emitted message event to room ${room}`);
       }
     });
 
