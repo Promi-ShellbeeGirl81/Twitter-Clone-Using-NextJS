@@ -1,22 +1,19 @@
-import Message from "@/models/message";  // Import the Message model to interact with the messages collection
+import Message from "@/models/message";  
 
 export async function GET(req, { params }) {
-  const { senderId, receiverId } = await params; // Access the dynamic segments from params
+  const { senderId, receiverId } = await params; 
 
   try {
-    // Query for an existing message between the sender and receiver
     const message = await Message.findOne({
       $or: [
-        { sender: senderId, receiver: receiverId },  // If the sender is senderId and receiver is receiverId
-        { sender: receiverId, receiver: senderId },  // Or if the sender is receiverId and receiver is senderId
+        { sender: senderId, receiver: receiverId },  
+        { sender: receiverId, receiver: senderId },  
       ],
-    }).sort({ createdAt: -1 });  // Sort by the most recent message
+    }).sort({ createdAt: -1 });  
 
     if (message) {
-      // If an existing message is found, return it
       return new Response(JSON.stringify(message), { status: 200 });
     } else {
-      // If no message is found, return a 404 response
       return new Response(JSON.stringify({ message: "No existing message found" }), { status: 404 });
     }
   } catch (error) {

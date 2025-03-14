@@ -13,31 +13,85 @@ app.prepare().then(() => {
   const httpServer = createServer(handle);
   const io = new Server(httpServer);
 
+  // Keep track of online users and their socket IDs
+  const onlineUsers = new Map();
+  const userSockets = new Map();
+  const messageSeenStatus = new Map();
+
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on("join-room", ({ room, username }) => {
       socket.join(room);
+      userSockets.set(username, socket.id);
       console.log(`User ${username} joined room ${room}`);
       io.to(room).emit("user_joined", `${username} joined room`);
-      console.log(`Emitted user_joined event to room ${room}`);
-      console.log(`Users in room ${room}:`, io.sockets.adapter.rooms.get(room));
     });
 
-    socket.on("message", ({ room, message, sender }) => {
+    // Handle user status updates
+    socket.on("user_status", ({ userId, status }) => {
+      console.log(`User ${userId} status: ${status}`);
+      if (status === 'online') {
+        onlineUsers.set(userId, true);
+        userSockets.set(userId, socket.id);
+      } else {
+        onlineUsers.delete(userId);
+        userSockets.delete(userId);
+      }
+      io.emit("user_status_update", { userId, status });
+    });
+
+    socket.on("message", ({ room, message, sender, receiver, messageId, timestamp }) => {
       if (message.trim()) {
         console.log(`Message from ${sender} in room ${room}: ${message}`);
-        io.in(room).emit("message", { sender, message });
+        const messageData = {
+          sender,
+          message,
+          messageId: messageId || Date.now().toString(),
+          seen: false,
+          timestamp: timestamp || new Date().toISOString()
+        };
+        
+        // Store message seen status
+        messageSeenStatus.set(messageData.messageId, {
+          seen: false,
+          seenBy: new Set(),
+          sender,
+          receiver
+        });
+
+        io.in(room).emit("message", messageData);
         console.log(`Emitted message event to room ${room}`);
       }
     });
 
+    // Handle message seen event
+    socket.on("message_seen", ({ room, messageId, seenBy }) => {
+      const messageStatus = messageSeenStatus.get(messageId);
+      if (messageStatus) {
+        messageStatus.seenBy.add(seenBy);
+        messageStatus.seen = true;
+      
+        if (onlineUsers.has(seenBy)) {
+          io.in(room).emit("message_seen_update", { messageId, seenBy });
+          console.log(`Message ${messageId} seen by ${seenBy} in room ${room}`);
+        }
+      }
+    });
+
     socket.on("disconnect", () => {
+      for (const [userId, socketId] of userSockets.entries()) {
+        if (socketId === socket.id) {
+          onlineUsers.delete(userId);
+          userSockets.delete(userId);
+          io.emit("user_status_update", { userId, status: 'offline' });
+          break;
+        }
+      }
       console.log(`User disconnected: ${socket.id}`);
     });
   });
 
-  // Start the HTTP server after setting up socket events
   httpServer.listen(port, () => {
     console.log(`Server running on http://${hostname}:${port}`);
   });

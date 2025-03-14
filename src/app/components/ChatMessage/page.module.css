@@ -1,11 +1,12 @@
 .messageContainer {
   display: flex;
   margin-bottom: 12px;
- 
+  opacity: 1;
+  transition: opacity 0.3s ease;
 }
 
 .messageSystem {
-  justify-content: center;
+ display: none;
 }
 
 .messageOwn {
@@ -17,22 +18,25 @@
 }
 
 .messageBox {
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 16px;
   font-size: 14px;
   word-wrap: break-word;
   max-width: 300px;
-  background-color: #222; /* Dark gray */
+  background-color: #222;
   color: white;
   display: inline-block;
   position: relative;
-  border-bottom-left-radius: 4px; /* Less rounded on bottom-left */
+  border-bottom-left-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
 .messageOwnBox {
-  background-color: #1d9bf0; 
+  background-color: #1d9bf0;
   color: white;
-
+  border-bottom-right-radius: 4px;
+  border-bottom-left-radius: 16px;
 }
 
 .messageSystemBox {
@@ -40,19 +44,105 @@
   color: white;
   text-align: center;
   font-size: 12px;
+  padding: 8px 12px;
 }
 
-
 .messageOtherBox {
-  background-color: white;
-  color: black;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.messageHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .sender {
-  font-size: 14px;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 600;
+  color: inherit;
 }
 
 .message {
   font-size: 14px;
+  margin: 0;
+  padding: 0;
+  line-height: 1.4;
+}
+
+.messageFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 4px;
+  min-height: 16px;
+}
+
+.messageStatus {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.seenStatus {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  opacity: 0.7;
+  transition: all 0.2s ease;
+}
+
+.seenStatus.seen {
+  opacity: 1;
+}
+
+.checkmark {
+  font-size: 12px;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.8);
+  transition: all 0.2s ease;
+}
+
+.seenStatus.seen .checkmark {
+  color: #ffffff;
+}
+
+.seenStatus.seen .checkmark.first {
+  transform: translateX(2px);
+}
+
+.seenStatus.seen .checkmark.second {
+  transform: translateX(-2px);
+  animation: seenAnimation 0.3s ease-in-out;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-right: 4px;
+}
+
+.onlineStatus {
+  font-size: 8px;
+  color: #6e7780;
+  transition: color 0.3s ease;
+}
+
+.onlineStatus.online {
+  color: #00ba34;
+}
+
+/* Animation for seen status */
+@keyframes seenAnimation {
+  0% { transform: scale(1) translateX(-2px); }
+  50% { transform: scale(1.2) translateX(-2px); }
+  100% { transform: scale(1) translateX(-2px); }
+}
+
+/* Hover effects */
+.messageBox:hover {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
