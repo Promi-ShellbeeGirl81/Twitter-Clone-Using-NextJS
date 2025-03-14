@@ -63,7 +63,7 @@ export async function GET(req) {
         { sender, receiver },
         { sender: receiver, receiver: sender },
       ],
-    }).sort({ createdAt: 1 }); 
+    }).sort({ createdAt: 1 }).select('sender receiver messageContent messageType seenAt'); 
 
     console.log("Messages fetched:", messages);
 

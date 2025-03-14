@@ -125,6 +125,12 @@
   margin-right: 4px;
 }
 
+.seenAt {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-left: 4px;
+}
+
 .onlineStatus {
   font-size: 8px;
   color: #6e7780;

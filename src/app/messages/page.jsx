@@ -125,7 +125,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Right Panel: Chat Room or Placeholder */}
       <div className={styles.chatContainer}>
         {selectedUser ? (
           <ChatRoom key={selectedUser._id} selectedUser={selectedUser} senderId={userId} />

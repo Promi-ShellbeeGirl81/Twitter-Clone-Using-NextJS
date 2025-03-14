@@ -26,6 +26,10 @@ const MessageSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    seenAt: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );
