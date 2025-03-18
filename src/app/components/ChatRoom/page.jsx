@@ -77,45 +77,27 @@ export default function ChatRoom({ selectedUser, setMessages }) {
     };
   
     const handleIncomingMessage = (data) => {
-      console.log("Incoming message createdAt:", data.createdAt); // Log createdAt for debugging
-    
-      // Ensure the messageContent and createdAt fields are correctly mapped
+      console.log("Incoming message createdAt:", data.createdAt); // Debugging
+
       const formattedMessage = {
         ...data,
         messageContent: data.messageContent || data.message,
-        createdAt: data.createdAt
-          ? new Date(data.createdAt).toLocaleString("en-US", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            }) // Format createdAt for display
-          : "Unknown Date", // Fallback for missing dates
+        createdAt: data.createdAt || new Date().toISOString(), // Fallback to ISO string
       };
-    
+
       setMessagesState((prevMessages) => {
         const messageExists = prevMessages.some((msg) => msg.messageId === formattedMessage.messageId);
         if (messageExists) return prevMessages;
-    
+
         const updatedMessages = [...prevMessages, formattedMessage];
         updatedMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         return updatedMessages;
       });
-    
-      setMessages((prevMessages) => {
-        const messageExists = prevMessages.some((msg) => msg.messageId === formattedMessage.messageId);
-        if (messageExists) return prevMessages;
-    
-        const updatedMessages = [...prevMessages, formattedMessage];
-        updatedMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        return updatedMessages;
-      });
-    
-      // Scroll to the bottom of the messages container
+
       if (messagesContainerRef.current) {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
-    };
-    
+    };    
   
     const handleUserJoined = (message) => {
       console.log("User joined event received:", message);
@@ -166,33 +148,35 @@ export default function ChatRoom({ selectedUser, setMessages }) {
       console.error("Invalid message:", message);
       return;
     }
-  
+
+    const timestamp = new Date().toISOString(); // Ensure ISO format
+
     const messageData = {
       room: roomId,
       message: message.trim(),
       sender: userId,
       receiver: receiver._id,
-      messageId: new Date().getTime().toString(), // Generate a unique message ID
-      timestamp: new Date().toISOString(),
+      messageId: new Date().getTime().toString(), // Generate unique ID
+      createdAt: timestamp, // Use ISO string
     };
-  
+
     try {
-      // Emit the message to the server via socket
       console.log("Emitting message to socket:", messageData);
       socket.emit("message", messageData);
-  
-      // Optimistically update the UI
+
+      // Optimistically update the UI with ISO timestamp
       setMessages((prev) => {
-        const updatedMessages = [...prev, { ...messageData, messageContent: messageData.messageContent }];
-        updatedMessages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const updatedMessages = [
+          ...prev,
+          { ...messageData }, // Use the same messageData object
+        ];
+        updatedMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         return updatedMessages;
       });
     } catch (error) {
       console.error("Error sending message:", error);
     }
   };
-  
-  
 
   return (
     <div className={styles.container}>

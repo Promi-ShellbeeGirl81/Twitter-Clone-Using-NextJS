@@ -64,7 +64,8 @@ app.prepare().then(() => {
       } catch (error) {
         console.error("Error handling message:", error.message);
       }
-    });    
+    });
+    
     
     // Handle message seen event
     socket.on("message_seen", async ({ room, messageId, seenBy }) => {
