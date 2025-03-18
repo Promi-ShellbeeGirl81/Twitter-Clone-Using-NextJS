@@ -24,7 +24,7 @@ const MessageSchema = new Schema(
     },
     read: {
       type: Boolean,
-      default: false,
+      default: false, // Indicates whether the message has been delivered
     },
     seenAt: {
       type: Date,

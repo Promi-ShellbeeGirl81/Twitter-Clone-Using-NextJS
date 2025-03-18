@@ -23,37 +23,60 @@ export default function Home() {
 
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!userId) return; // Ensure userId is available before fetching users
       try {
         const res = await fetch("/api/users");
         if (!res.ok) {
           throw new Error(`Failed to fetch users: ${res.status}`);
         }
         const data = await res.json();
-    
-        // Fetch last messages for each user
-        const usersWithLastMessage = await Promise.all(data.map(async (user) => {
-          const messageRes = await fetch(`/api/messages/last?userId=${user._id}`);
-          const messageData = messageRes.ok ? await messageRes.json() : null;
-          return { ...user, lastMessage: messageData };
-        }));
-    
-        setUsers(usersWithLastMessage);
+
+        // Fetch last messages for each user and filter based on session user and self-messages
+        const usersWithFilteredMessages = await Promise.all(
+          data.map(async (user) => {
+            const selfMessageRes = await fetch(`/api/messages/self?userId=${user._id}`);
+            const hasSelfMessage = selfMessageRes.ok ? await selfMessageRes.json() : false;
+
+            // Include users if:
+            // 1. The user has self-messages and matches the session user.
+            // 2. The user has messages with the session user (sender or receiver).
+            const hasMessagesWithSession = await fetch(
+              `/api/messages/with-session?userId=${user._id}&sessionId=${userId}`
+            ).then((res) => (res.ok ? res.json() : false));
+
+            if ((hasSelfMessage && user._id === userId) || hasMessagesWithSession) {
+              const messageRes = await fetch(`/api/messages?sender=${userId}&receiver=${user._id}`);
+              const messageData = messageRes.ok ? await messageRes.json() : null;
+              console.log(`Fetched messages for user ${user._id}:`, messageData); // Debugging
+              return { ...user, lastMessage: messageData?.[messageData.length - 1] || null };
+            }
+
+            return null;
+          })
+        );
+
+        // Filter out null values (users that don't meet the criteria)
+        setUsers(usersWithFilteredMessages.filter((user) => user !== null));
       } catch (error) {
         console.error("Error fetching users:", error);
       }
-    };    
+    };
 
     fetchUsers();
-  }, []);
+  }, [userId]); // Ensure userId is always included in the dependency array
 
   useEffect(() => {
     if (!session?.user?.email) return;
     const getUserId = async () => {
-      const id = await fetchUserIdByEmail(session.user.email);
-      setUserId(id);
+      try {
+        const id = await fetchUserIdByEmail(session.user.email);
+        setUserId(id);
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
     };
     getUserId();
-  }, [session?.user?.email]);
+  }, [session?.user?.email]); // Ensure session.user.email is always included in the dependency array
 
   const handleUserSelect = async (user) => {
     if (!user || !user._id) {
@@ -84,9 +107,9 @@ export default function Home() {
   };
   
 
-  const filteredUsers = users.filter((user) =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = users
+    .filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter((user) => user.lastMessage); // Exclude users with no messages
 
   return (
     <div className={styles.container}>

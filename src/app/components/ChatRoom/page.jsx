@@ -64,6 +64,7 @@ export default function ChatRoom({ selectedUser, setMessages }) {
     };    
     fetchMessages();
   }, [userId, selectedUser?._id, setMessages]);
+  
 
   // Room ID generation and socket handling
   useEffect(() => {
@@ -77,23 +78,19 @@ export default function ChatRoom({ selectedUser, setMessages }) {
     };
   
     const handleIncomingMessage = (data) => {
-      console.log("Incoming message createdAt:", data.createdAt); // Debugging
-
       const formattedMessage = {
         ...data,
         messageContent: data.messageContent || data.message,
-        createdAt: data.createdAt || new Date().toISOString(), // Fallback to ISO string
+        createdAt: data.createdAt || new Date().toISOString(),
       };
-
+    
       setMessagesState((prevMessages) => {
         const messageExists = prevMessages.some((msg) => msg.messageId === formattedMessage.messageId);
         if (messageExists) return prevMessages;
-
-        const updatedMessages = [...prevMessages, formattedMessage];
-        updatedMessages.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
-        return updatedMessages;
+    
+        return [...prevMessages, formattedMessage].sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
       });
-
+    
       if (messagesContainerRef.current) {
         messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
       }
@@ -122,6 +119,42 @@ export default function ChatRoom({ selectedUser, setMessages }) {
       socket.off("user_joined", handleUserJoined);
     };
   }, [userId, selectedUser?._id]);
+
+  useEffect(() => {
+    const fetchMessages = async () => {
+      if (!userId || !receiver?._id) return;
+      try {
+        const res = await fetch(
+          `/api/messages?sender=${userId}&receiver=${receiver._id}`
+        );
+        const data = await res.json();
+        if (res.ok) {
+          const formattedMessages = data.map((msg) => ({
+            ...msg,
+            createdAt: msg.createdAt ? new Date(msg.createdAt).toISOString() : new Date().toISOString(),
+          }));
+          setMessagesState(formattedMessages);
+          setMessages(formattedMessages);
+        } else {
+          console.error("Error fetching messages:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
+    };
+  
+    socket.on("user_status_update", ({ userId, status }) => {
+      console.log(`User ${userId} is now ${status}`);
+      if (status === "online" && userId === receiver?._id) {
+        console.log("Fetching missed messages...");
+        fetchMessages();
+      }
+    });
+  
+    return () => {
+      socket.off("user_status_update");
+    };
+  }, [receiver]);  
 
   const fetchUserDetails = async (userId) => {
     if (!users[userId]) {

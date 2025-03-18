@@ -34,19 +34,6 @@ app.prepare().then(() => {
       io.to(room).emit("user_joined", `${username} joined room`);
     });
 
-    // Handle user status updates
-    socket.on("user_status", ({ userId, status }) => {
-      console.log(`User ${userId} status: ${status}`);
-      if (status === 'online') {
-        onlineUsers.set(userId, true);
-        userSockets.set(userId, socket.id);
-      } else {
-        onlineUsers.delete(userId);
-        userSockets.delete(userId);
-      }
-      io.emit("user_status_update", { userId, status });
-    });
-
     socket.on("message", async (data) => {
       try {
         const { room, message, sender, receiver, messageId, createdAt } = data;
@@ -56,51 +43,116 @@ app.prepare().then(() => {
           receiver,
           messageContent: message.trim(),
           messageId: messageId || new mongoose.Types.ObjectId().toString(),
-          createdAt: createdAt ? new Date(createdAt).toISOString() : new Date().toISOString(), // Ensure createdAt is an ISO string
+          createdAt: createdAt ? new Date(createdAt).toISOString() : new Date().toISOString(),
         };
-        console.log("Emitting message with createdAt:", messageData.createdAt); // Log createdAt for debugging
     
-        io.in(room).emit("message", messageData); // Emit consistent format
+        console.log("Server - Incoming message:", messageData);
+    
+        // Save the message to the database
+        const newMessage = new Message({
+          sender,
+          receiver,
+          messageContent: messageData.messageContent,
+          messageType: "text", // Assuming default type is "text"
+          createdAt: messageData.createdAt,
+          read: false, // Mark as unread initially
+        });
+    
+        try {
+          await newMessage.save();
+          console.log("Server - Message successfully saved to database:", newMessage);
+        } catch (dbError) {
+          console.error("Server - Error saving message to database:", dbError.message);
+          return;
+        }
+    
+        // Emit the message to the sender for immediate feedback
+        if (userSockets.has(sender)) {
+          console.log(`Sender ${sender} is online. Sending message back to sender.`);
+          io.to(userSockets.get(sender)).emit("message", messageData);
+        } else {
+          console.log(`Sender ${sender} is offline. Message saved but not sent back.`);
+        }
+    
+        // Check if the receiver is online
+        if (onlineUsers.has(receiver)) {
+          console.log(`Receiver ${receiver} is online. Sending message.`);
+          io.to(userSockets.get(receiver)).emit("message", messageData); // Deliver message in real-time
+        } else {
+          console.log(`Receiver ${receiver} is offline. Message saved to database.`);
+        }
       } catch (error) {
         console.error("Error handling message:", error.message);
       }
-    });
+    });    
     
+    // When the user comes online, send undelivered messages
+    socket.on("user_status", async ({ userId, status }) => {
+      console.log(`User ${userId} status: ${status}`);
+      
+      if (status === "online") {
+        onlineUsers.set(userId, true);
+        userSockets.set(userId, socket.id);
+        
+        // Fetch undelivered messages from the database and send them
+        const undeliveredMessages = await Message.find({ receiver: userId, read: false }).sort({ createdAt: 1 });
+        
+        if (undeliveredMessages.length > 0) {
+          console.log(`Sending ${undeliveredMessages.length} undelivered messages to ${userId}`);
+          undeliveredMessages.forEach((msg) => {
+            io.to(socket.id).emit("message", {
+              sender: msg.sender,
+              receiver: msg.receiver,
+              messageContent: msg.messageContent,
+              messageId: msg._id.toString(),
+              createdAt: msg.createdAt.toISOString(),
+            });
+          });
+        
+          // Mark messages as delivered after sending them
+          await Message.updateMany({ receiver: userId, read: false }, { read: true });
+        }
+      } else {
+        onlineUsers.delete(userId);
+        userSockets.delete(userId);
+      }
     
-    // Handle message seen event
+      io.emit("user_status_update", { userId, status });
+    });    
+   
     socket.on("message_seen", async ({ room, messageId, seenBy }) => {
       const messageStatus = messageSeenStatus.get(messageId);
       if (messageStatus) {
         messageStatus.seenBy.add(seenBy);
         messageStatus.seen = true;
-      
+    
         if (onlineUsers.has(seenBy)) {
           io.in(room).emit("message_seen_update", { messageId, seenBy });
-
+    
           // Update the seenAt field in the database
           await Message.findByIdAndUpdate(new mongoose.Types.ObjectId(messageId), { seenAt: new Date(), seenBy });
-
+    
           console.log(`Message ${messageId} seen by ${seenBy} in room ${room}`);
         }
       }
     });
-
+  
     socket.on("sendMessage", async (data) => {
       try {
         const { messageContent, sender, receiver, messageType } = data;
-    
+
         // Validate messageContent
         if (!messageContent || typeof messageContent !== "string" || !messageContent.trim()) {
-          console.error("Invalid messageContent:", messageContent); // Log invalid messageContent
+          console.error("Invalid messageContent:", messageContent);
           throw new Error("Invalid message content");
         }
-    
+
         // Validate other required fields
         if (!sender || !receiver || !messageType) {
-          console.error("Missing required fields:", { sender, receiver, messageType }); // Log missing fields
+          console.error("Missing required fields:", { sender, receiver, messageType });
           throw new Error("Missing required fields");
         }
-    
+
         // Proceed with saving the message
         const newMessage = new Message({
           messageContent: messageContent.trim(),
@@ -109,7 +161,7 @@ app.prepare().then(() => {
           messageType,
           createdAt: new Date(),
         });
-    
+
         await newMessage.save();
         io.emit("message", newMessage);
       } catch (error) {
@@ -123,7 +175,7 @@ app.prepare().then(() => {
         if (socketId === socket.id) {
           onlineUsers.delete(userId);
           userSockets.delete(userId);
-          io.emit("user_status_update", { userId, status: 'offline' });
+          io.emit("user_status_update", { userId, status: "offline" });
           break;
         }
       }
