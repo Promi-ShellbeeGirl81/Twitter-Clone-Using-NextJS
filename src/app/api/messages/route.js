@@ -28,15 +28,24 @@ export async function POST(req) {
 
     // Create and save the new message
     const newMessage = new Message({
-      sender: sender, // Already ID from frontend
-      receiver: receiver, // Already ID from frontend
+      sender,
+      receiver,
       messageContent,
       messageType,
+      createdAt: new Date(),
     });
 
     await newMessage.save();
 
-    return new Response(JSON.stringify(newMessage), { status: 200 });
+    // Include all necessary fields in the response
+    return new Response(
+      JSON.stringify({
+        ...newMessage.toObject(),
+        messageId: newMessage._id.toString(),
+        createdAt: newMessage.createdAt.toISOString(),
+      }),
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error creating message:", error);
     return new Response(JSON.stringify({ message: "Server error", error: error.message }), { status: 500 });
@@ -63,11 +72,19 @@ export async function GET(req) {
         { sender, receiver },
         { sender: receiver, receiver: sender },
       ],
-    }).sort({ createdAt: 1 }).select('sender receiver messageContent messageType seenAt'); 
+    }).sort({ createdAt: 1 }).select('sender receiver messageContent messageType createdAt'); 
 
-    console.log("Messages fetched:", messages);
+    const formattedMessages = messages.map((msg) => {
+      console.log("Message createdAt:", msg.createdAt); // Log createdAt for debugging
+      return {
+        ...msg.toObject(),
+        createdAt: msg.createdAt ? msg.createdAt.toISOString() : null, // Ensure createdAt is an ISO string
+      };
+    });
 
-    return new Response(JSON.stringify(messages), { status: 200 });
+    console.log("Messages fetched:", formattedMessages);
+
+    return new Response(JSON.stringify(formattedMessages), { status: 200 });
   } catch (error) {
     console.error("Error fetching messages:", error);
     return new Response(

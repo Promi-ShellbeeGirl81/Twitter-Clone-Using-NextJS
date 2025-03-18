@@ -47,7 +47,10 @@ const ChatMessage = ({
         )}
         <p className={styles.message}>{message}</p>
         <div className={styles.messageFooter}>
-          <span className={styles.timestamp}>
+          <span
+            className={styles.timestamp}
+            style={{ color: !isOwnMessage ? "black" : "inherit" }}
+          >
             {new Date(timestamp).toLocaleTimeString([], {
               hour: "2-digit",
               minute: "2-digit",

@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server } from "socket.io";
 import mongoose from "mongoose";
-import Message from "@/models/message"; // Import the Message model
+import Message from "./src/models/message.js";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME || "localhost";
@@ -24,6 +24,10 @@ app.prepare().then(() => {
     console.log(`User connected: ${socket.id}`);
 
     socket.on("join-room", ({ room, username }) => {
+      if (!room || !username) {
+        console.error("Invalid join-room data:", { room, username });
+        return;
+      }
       socket.join(room);
       userSockets.set(username, socket.id);
       console.log(`User ${username} joined room ${room}`);
@@ -43,42 +47,25 @@ app.prepare().then(() => {
       io.emit("user_status_update", { userId, status });
     });
 
-    socket.on("message", async ({ room, message, sender, receiver, messageId, timestamp }) => {
-      if (message.trim()) {
-        console.log(`Message from ${sender} in room ${room}: ${message}`);
+    socket.on("message", async (data) => {
+      try {
+        const { room, message, sender, receiver, messageId, createdAt } = data;
+    
         const messageData = {
           sender,
-          message,
+          receiver,
+          messageContent: message.trim(),
           messageId: messageId || new mongoose.Types.ObjectId().toString(),
-          seen: false,
-          timestamp: timestamp || new Date().toISOString()
+          createdAt: createdAt ? new Date(createdAt).toISOString() : new Date().toISOString(), // Ensure createdAt is an ISO string
         };
-        
-        // Store message seen status
-        messageSeenStatus.set(messageData.messageId, {
-          seen: false,
-          seenBy: new Set(),
-          sender,
-          receiver
-        });
-
-        // Save the message to the database
-        const newMessage = new Message({
-          sender: messageData.sender,
-          receiver: messageData.receiver,
-          messageContent: messageData.message,
-          messageType: "text",
-          _id: messageData.messageId,
-          createdAt: messageData.timestamp,
-        });
-
-        await newMessage.save();
-
-        io.in(room).emit("message", messageData);
-        console.log(`Emitted message event to room ${room}`);
+        console.log("Emitting message with createdAt:", messageData.createdAt); // Log createdAt for debugging
+    
+        io.in(room).emit("message", messageData); // Emit consistent format
+      } catch (error) {
+        console.error("Error handling message:", error.message);
       }
-    });
-
+    });    
+    
     // Handle message seen event
     socket.on("message_seen", async ({ room, messageId, seenBy }) => {
       const messageStatus = messageSeenStatus.get(messageId);
@@ -94,6 +81,39 @@ app.prepare().then(() => {
 
           console.log(`Message ${messageId} seen by ${seenBy} in room ${room}`);
         }
+      }
+    });
+
+    socket.on("sendMessage", async (data) => {
+      try {
+        const { messageContent, sender, receiver, messageType } = data;
+    
+        // Validate messageContent
+        if (!messageContent || typeof messageContent !== "string" || !messageContent.trim()) {
+          console.error("Invalid messageContent:", messageContent); // Log invalid messageContent
+          throw new Error("Invalid message content");
+        }
+    
+        // Validate other required fields
+        if (!sender || !receiver || !messageType) {
+          console.error("Missing required fields:", { sender, receiver, messageType }); // Log missing fields
+          throw new Error("Missing required fields");
+        }
+    
+        // Proceed with saving the message
+        const newMessage = new Message({
+          messageContent: messageContent.trim(),
+          sender,
+          receiver,
+          messageType,
+          createdAt: new Date(),
+        });
+    
+        await newMessage.save();
+        io.emit("message", newMessage);
+      } catch (error) {
+        console.error("Error handling sendMessage:", error.message);
+        socket.emit("error", { message: error.message });
       }
     });
 
