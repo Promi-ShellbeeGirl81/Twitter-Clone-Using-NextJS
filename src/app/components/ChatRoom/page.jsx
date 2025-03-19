@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { socket } from "@/lib/socketClient";
@@ -11,7 +11,6 @@ import styles from "./page.module.css";
 export default function ChatRoom({ selectedUser }) {
   const { senderId } = useParams();
   const { data: session } = useSession();
-  // Single source of truth for messages
   const [messages, setMessages] = useState([]);
   const [receiver, setReceiver] = useState(selectedUser);
   const [userId, setUserId] = useState(null);
@@ -21,7 +20,7 @@ export default function ChatRoom({ selectedUser }) {
     "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
   const messagesContainerRef = useRef(null);
 
-  // Fetch current user's ID based on session email
+  // Get current user's ID based on session email
   useEffect(() => {
     if (!session?.user?.email) return;
     const getUserId = async () => {
@@ -31,7 +30,7 @@ export default function ChatRoom({ selectedUser }) {
     getUserId();
   }, [session?.user?.email]);
 
-  // Emit user status to update onlineUsers on server
+  // Set online status
   useEffect(() => {
     if (userId) {
       socket.emit("user_status", { userId, status: "online" });
@@ -45,7 +44,7 @@ export default function ChatRoom({ selectedUser }) {
     }
   }, [selectedUser]);
 
-  // Function to fetch chat history from the API
+  // Fetch messages from API and emit seen for messages sent to current user
   const fetchMessages = async () => {
     if (!userId || !receiver?._id) return;
     try {
@@ -56,76 +55,45 @@ export default function ChatRoom({ selectedUser }) {
       if (res.ok) {
         const formattedMessages = data.map((msg) => ({
           ...msg,
-          createdAt: msg.createdAt
-            ? new Date(msg.createdAt).toISOString()
-            : new Date().toISOString(),
+          messageId: msg._id, // use server-generated id
+          createdAt: new Date(msg.createdAt).toISOString(),
+          seenAt: msg.seenAt,
         }));
         setMessages(formattedMessages);
-      } else {
-        console.error("Error fetching messages:", data.message);
+
+        // For every message sent to the current user that hasn't been seen, emit "message_seen"
+        formattedMessages.forEach((msg) => {
+          if (msg.receiver === userId && !msg.seenAt) {
+            const room = [userId, receiver._id].sort().join("_");
+            console.log(`Emitting message_seen for message ${msg.messageId}`);
+            socket.emit("message_seen", {
+              room,
+              messageId: msg.messageId,
+              seenBy: userId,
+            });
+          }
+        });
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
   };
 
-  // Fetch chat history when userId or receiver changes
+  // Fetch messages when user or receiver changes
   useEffect(() => {
     if (!userId || !receiver?._id) return;
     fetchMessages();
   }, [userId, receiver?._id]);
 
-  // Setup room ID and socket event handlers
+  // Set up room and socket event handlers
   useEffect(() => {
     if (!userId || !receiver?._id) return;
-    const roomId = [userId, receiver._id].sort().join("_");
-    setRoomId(roomId);
+    const room = [userId, receiver._id].sort().join("_");
+    setRoomId(room);
 
     const handleSocketConnect = () => {
-      console.log("Socket connected, joining room:", roomId);
-      socket.emit("join-room", { room: roomId, username: userId });
-    };
-
-    const handleIncomingMessage = (data) => {
-      const formattedMessage = {
-        ...data,
-        // Ensure the message content is set correctly
-        messageContent: data.messageContent || data.message,
-        createdAt: data.createdAt || new Date().toISOString(),
-      };
-
-      setMessages((prevMessages) => {
-        // Prevent duplicate messages by checking messageId
-        const messageExists = prevMessages.some(
-          (msg) => msg.messageId === formattedMessage.messageId
-        );
-        if (messageExists) return prevMessages;
-        const newMessages = [...prevMessages, formattedMessage];
-        newMessages.sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        );
-        return newMessages;
-      });
-
-      // Auto-scroll to the bottom of the messages container
-      if (messagesContainerRef.current) {
-        messagesContainerRef.current.scrollTop =
-          messagesContainerRef.current.scrollHeight;
-      }
-    };
-
-    const handleUserJoined = (message) => {
-      console.log("User joined:", message);
-      // Add a system message when a user joins, without fetching user details
-      setMessages((prev) => [
-        ...prev,
-        {
-          sender: "system",
-          messageContent: message,
-          createdAt: new Date().toISOString(),
-          messageId: new Date().getTime().toString(),
-        },
-      ]);
+      console.log("Socket connected, joining room:", room);
+      socket.emit("join-room", { room, username: userId });
     };
 
     if (socket.connected) {
@@ -134,55 +102,90 @@ export default function ChatRoom({ selectedUser }) {
       socket.on("connect", handleSocketConnect);
     }
 
+    // When a new message arrives, update messages
+    const handleIncomingMessage = (data) => {
+      const formattedMessage = {
+        ...data,
+        messageContent: data.messageContent || data.message,
+        createdAt: data.createdAt || new Date().toISOString(),
+      };
+
+      setMessages((prevMessages) => {
+        const exists = prevMessages.some(
+          (msg) => msg.messageId === formattedMessage.messageId
+        );
+        if (exists) {
+          return prevMessages.map((msg) =>
+            msg.messageId === formattedMessage.messageId
+              ? formattedMessage
+              : msg
+          );
+        }
+        return [...prevMessages, formattedMessage].sort(
+          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
+        );
+      });
+
+      if (messagesContainerRef.current) {
+        messagesContainerRef.current.scrollTop =
+          messagesContainerRef.current.scrollHeight;
+      }
+    };
+
     socket.on("message", handleIncomingMessage);
-    socket.on("user_joined", handleUserJoined);
 
     return () => {
       socket.off("connect", handleSocketConnect);
       socket.off("message", handleIncomingMessage);
-      socket.off("user_joined", handleUserJoined);
     };
   }, [userId, receiver?._id]);
 
-  // Listen for user status updates to re-fetch missed messages if receiver comes online
   useEffect(() => {
     const handleUserStatusUpdate = ({ userId: updatedUserId, status }) => {
       console.log(`User ${updatedUserId} is now ${status}`);
       if (status === "online" && updatedUserId === receiver?._id) {
-        console.log("Receiver is online, fetching missed messages...");
-        fetchMessages();
+        console.log("Receiver is online, updating last message if it's from the sender...");
+        setMessages((prev) => {
+          if (prev.length === 0) return prev;
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.sender === userId && !lastMessage.seenAt) {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+              ...lastMessage,
+              seenAt: new Date().toISOString(),
+            };
+            console.log("Updated last message with seenAt:", updated[updated.length - 1]);
+            return updated;
+          }
+          return prev;
+        });
       }
-    };
-
+    }
     socket.on("user_status_update", handleUserStatusUpdate);
     return () => {
       socket.off("user_status_update", handleUserStatusUpdate);
     };
-  }, [receiver]);
+  }, [receiver, userId]);
 
-  // Fetch details (e.g., name) for any user present in messages if not already fetched.
-  // Skip if the sender is "system" since there's no API for that.
-  const fetchUserDetails = async (userId) => {
-    if (userId === "system") return;
-    if (!users[userId]) {
+  // Fetch details for any user present in messages
+  const fetchUserDetails = async (uid) => {
+    if (uid === "system") return;
+    if (!users[uid]) {
       try {
-        const user = await fetchUserById(userId);
-        setUsers((prev) => ({ ...prev, [userId]: user.name }));
+        const user = await fetchUserById(uid);
+        setUsers((prev) => ({ ...prev, [uid]: user.name }));
       } catch (error) {
-        console.error(`Error fetching user (${userId}):`, error);
+        console.error(`Error fetching user (${uid}):`, error);
       }
     }
   };
 
-  // Ensure user details are fetched for all messages (ignoring system messages)
   useEffect(() => {
-    if (messages.length > 0) {
-      messages.forEach((msg) => {
-        if (msg.sender !== "system") {
-          fetchUserDetails(msg.sender);
-        }
-      });
-    }
+    messages.forEach((msg) => {
+      if (msg.sender !== "system") {
+        fetchUserDetails(msg.sender);
+      }
+    });
   }, [messages]);
 
   // Handle sending a new message
@@ -191,35 +194,76 @@ export default function ChatRoom({ selectedUser }) {
       console.error("Invalid message:", message);
       return;
     }
-
     const timestamp = new Date().toISOString();
-    // Include "messageContent" for consistency
     const messageData = {
       room: roomId,
       message: message.trim(),
       messageContent: message.trim(),
       sender: userId,
       receiver: receiver._id,
-      messageId: new Date().getTime().toString(),
       createdAt: timestamp,
     };
-
-    try {
-      console.log("Sending message:", messageData);
-      socket.emit("message", messageData);
-
-      // Optimistically update the UI with the new message
-      setMessages((prev) => {
-        const newMessages = [...prev, { ...messageData }];
-        newMessages.sort(
-          (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-        );
-        return newMessages;
-      });
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
+    console.log("Sending message:", messageData);
+    socket.emit("message", messageData);
   };
+
+  useEffect(() => {
+    const handleMessageSeenUpdate = ({ messageId, seenBy, seenAt }) => {
+      console.log(`Received seen update for message ${messageId}`, seenAt);
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg.messageId === messageId ? { ...msg, seenAt } : msg
+        )
+      );
+    };
+
+    socket.on("message_seen_update", handleMessageSeenUpdate);
+    return () => {
+      socket.off("message_seen_update", handleMessageSeenUpdate);
+    };
+  }, []);
+  const lastOverallMessageId = useMemo(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      return lastMessage.sender === userId ? lastMessage.messageId : null;
+    }
+    return null;
+  }, [messages, userId]);
+
+  // Compute the ID of the last message sent by the current user
+  const lastSentMessageId = useMemo(() => {
+    const sentMessages = messages.filter((msg) => msg.sender === userId);
+    if (sentMessages.length) {
+      const last = sentMessages[sentMessages.length - 1];
+      console.log("Last sent message:", last);
+      return last.messageId;
+    }
+    return null;
+  }, [messages, userId]);
+  useEffect(() => {
+    // Simulate a seen update 5 seconds after messages load
+    if (userId && messages.length > 0) {
+      const timer = setTimeout(() => {
+        setMessages((prev) => {
+          const lastIndex = prev.reduce((last, msg, index) => 
+            msg.sender === userId ? index : last, -1
+          );
+          if (lastIndex !== -1 && !prev[lastIndex].seenAt) {
+            const updated = [...prev];
+            updated[lastIndex] = {
+              ...updated[lastIndex],
+              seenAt: new Date().toISOString(),
+            };
+            console.log("Test update: last sent message updated with seenAt:", updated[lastIndex]);
+            return updated;
+          }
+          return prev;
+        });
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [userId, messages]);
+  
 
   return (
     <div className={styles.container}>
@@ -237,24 +281,26 @@ export default function ChatRoom({ selectedUser }) {
         </div>
       </div>
       <div className={styles.messagesContainer} ref={messagesContainerRef}>
-  {messages.length > 0 ? (
-    messages
-      .filter((msg) => msg.sender !== "system") // Filter out system messages
-      .map((msg, index) => (
-        <div key={msg.messageId || index} className={styles.messageWrapper}>
-          <ChatMessage
-            sender={users[msg.sender] || msg.sender}
-            message={msg.messageContent}
-            isOwnMessage={msg.sender === userId}
-            timestamp={msg.createdAt || "Unknown Date"}
-          />
-        </div>
-      ))
-  ) : (
-    <p>No messages yet</p>
-  )}
-</div>
-
+        {messages.length > 0 ? (
+          messages
+            .filter((msg) => msg.sender !== "system")
+            .map((msg, index) => (
+              <div key={msg.messageId || index} className={styles.messageWrapper}>
+                <ChatMessage
+                  sender={users[msg.sender] || msg.sender}
+                  message={msg.messageContent}
+                  isOwnMessage={msg.sender === userId}
+                  timestamp={msg.createdAt || "Unknown Date"}
+                  seen={!!msg.seenAt}
+                  seenAt={msg.seenAt}
+                  isLastSentMessage={msg.messageId === lastOverallMessageId}
+                />
+              </div>
+            ))
+        ) : (
+          <p>No messages yet</p>
+        )}
+      </div>
       <ChatForm onSendMessage={handleSendMessage} />
     </div>
   );

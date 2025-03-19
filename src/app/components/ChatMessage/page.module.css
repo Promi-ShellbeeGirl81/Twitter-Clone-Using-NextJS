@@ -148,7 +148,17 @@
   100% { transform: scale(1) translateX(-2px); }
 }
 
-/* Hover effects */
 .messageBox:hover {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
+.seenInfo {
+  color: white;
+  font-size: 11px;
+ margin-top: 4px;
+  border-radius: 4px;
+}
+.columnContainer {
+  flex-direction: column;
+  align-items: flex-end; 
+}
+

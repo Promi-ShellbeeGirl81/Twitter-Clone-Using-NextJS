@@ -182,39 +182,41 @@ export default function Home() {
           </div>
         </div>
         <div className={styles.usersList}>
-          {displayUsers.length > 0 ? (
-            displayUsers.map((user) => (
-              <div
-                key={user._id}
-                className={`${styles.userItem} ${selectedUser?._id === user._id ? styles.selectedUser : ""}`}
-                onClick={() => handleUserSelect(user)}
-              >
-                <div className={styles.userStatus}>
-                  <img src={user.profilePic || defaultImage} alt={user.name} />
-                  {onlineUsers.has(user._id) && <span className={styles.onlineDot} />}
-                </div>
-                <div className={styles.userInfo}>
-                  <span className={styles.userName}>{user.name}</span>
-                  {user.lastMessage ? (
-                    <>
-                      <span className={styles.lastMessage}>{user.lastMessage.messageContent}</span>
-                      <span className={styles.lastMessageTime}>
-                        {new Date(user.lastMessage.createdAt).toLocaleTimeString()}
-                      </span>
-                    </>
-                  ) : (
-                    <span className={styles.noMessages}>No messages yet</span>
-                  )}
-                </div>
-              </div>
-            ))
+  {displayUsers.length > 0 ? (
+    displayUsers.map((user) => (
+      <div
+        key={user._id}
+        className={`${styles.userItem} ${selectedUser?._id === user._id ? styles.selectedUser : ""}`}
+        onClick={() => handleUserSelect(user)}
+      >
+        <div className={styles.userStatus}>
+          <img src={user.profilePic || defaultImage} alt={user.name} />
+          {onlineUsers.has(user._id) && <span className={styles.onlineDot} />}
+        </div>
+        <div className={styles.userInfo}>
+          <span
+            className={`${styles.userName} ${!onlineUsers.has(user._id) ? styles.boldText : ""}`}
+          >
+            {user.name}
+          </span>
+          {user.lastMessage ? (
+            <>
+              <span className={styles.lastMessage}>{user.lastMessage.messageContent}</span>
+              <span className={styles.lastMessageTime}>
+                {new Date(user.lastMessage.createdAt).toLocaleTimeString()}
+              </span>
+            </>
           ) : (
-            <p>No users available</p>
+            <span className={styles.noMessages}>No messages yet</span>
           )}
         </div>
       </div>
-
-      {/* Chat Container */}
+    ))
+  ) : (
+    <p>No users available</p>
+  )}
+</div>
+      </div>
       <div className={styles.chatContainer}>
         {selectedUser ? (
           <ChatRoom key={selectedUser._id} selectedUser={selectedUser} senderId={userId} setMessages={setMessages} />
