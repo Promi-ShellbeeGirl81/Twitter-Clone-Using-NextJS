@@ -237,25 +237,24 @@ export default function ChatRoom({ selectedUser }) {
         </div>
       </div>
       <div className={styles.messagesContainer} ref={messagesContainerRef}>
-        {messages.length > 0 ? (
-          messages.map((msg, index) => (
-            <div key={msg.messageId || index} className={styles.messageWrapper}>
-              <ChatMessage
-                sender={
-                  msg.sender === "system"
-                    ? "System"
-                    : users[msg.sender] || msg.sender
-                }
-                message={msg.messageContent}
-                isOwnMessage={msg.sender === userId}
-                timestamp={msg.createdAt || "Unknown Date"}
-              />
-            </div>
-          ))
-        ) : (
-          <p>No messages yet</p>
-        )}
-      </div>
+  {messages.length > 0 ? (
+    messages
+      .filter((msg) => msg.sender !== "system") // Filter out system messages
+      .map((msg, index) => (
+        <div key={msg.messageId || index} className={styles.messageWrapper}>
+          <ChatMessage
+            sender={users[msg.sender] || msg.sender}
+            message={msg.messageContent}
+            isOwnMessage={msg.sender === userId}
+            timestamp={msg.createdAt || "Unknown Date"}
+          />
+        </div>
+      ))
+  ) : (
+    <p>No messages yet</p>
+  )}
+</div>
+
       <ChatForm onSendMessage={handleSendMessage} />
     </div>
   );

@@ -22,6 +22,7 @@ app.prepare().then(() => {
 
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.id}`);
+    socket.emit('online_users_list', Array.from(onlineUsers.keys()));
 
     socket.on("join-room", ({ room, username }) => {
       if (!room || !username) {
@@ -69,6 +70,7 @@ app.prepare().then(() => {
 
         // Emit the message to everyone in the room (sender and receiver)
         io.in(room).emit("message", messageData);
+        io.emit("message", messageData);
       } catch (error) {
         console.error("Error handling message:", error.message);
       }
