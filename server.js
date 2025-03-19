@@ -37,17 +37,18 @@ app.prepare().then(() => {
     socket.on("message", async (data) => {
       try {
         const { room, message, sender, receiver, messageId, createdAt } = data;
-    
         const messageData = {
           sender,
           receiver,
           messageContent: message.trim(),
           messageId: messageId || new mongoose.Types.ObjectId().toString(),
-          createdAt: createdAt ? new Date(createdAt).toISOString() : new Date().toISOString(),
+          createdAt: createdAt
+            ? new Date(createdAt).toISOString()
+            : new Date().toISOString(),
         };
-    
+
         console.log("Server - Incoming message:", messageData);
-    
+
         // Save the message to the database
         const newMessage = new Message({
           sender,
@@ -57,7 +58,7 @@ app.prepare().then(() => {
           createdAt: messageData.createdAt,
           read: false, // Mark as unread initially
         });
-    
+
         try {
           await newMessage.save();
           console.log("Server - Message successfully saved to database:", newMessage);
@@ -65,26 +66,13 @@ app.prepare().then(() => {
           console.error("Server - Error saving message to database:", dbError.message);
           return;
         }
-    
-        // Emit the message to the sender for immediate feedback
-        if (userSockets.has(sender)) {
-          console.log(`Sender ${sender} is online. Sending message back to sender.`);
-          io.to(userSockets.get(sender)).emit("message", messageData);
-        } else {
-          console.log(`Sender ${sender} is offline. Message saved but not sent back.`);
-        }
-    
-        // Check if the receiver is online
-        if (onlineUsers.has(receiver)) {
-          console.log(`Receiver ${receiver} is online. Sending message.`);
-          io.to(userSockets.get(receiver)).emit("message", messageData); // Deliver message in real-time
-        } else {
-          console.log(`Receiver ${receiver} is offline. Message saved to database.`);
-        }
+
+        // Emit the message to everyone in the room (sender and receiver)
+        io.in(room).emit("message", messageData);
       } catch (error) {
         console.error("Error handling message:", error.message);
       }
-    });    
+    });
     
     // When the user comes online, send undelivered messages
     socket.on("user_status", async ({ userId, status }) => {
@@ -119,7 +107,7 @@ app.prepare().then(() => {
     
       io.emit("user_status_update", { userId, status });
     });    
-   
+    
     socket.on("message_seen", async ({ room, messageId, seenBy }) => {
       const messageStatus = messageSeenStatus.get(messageId);
       if (messageStatus) {
