@@ -22,6 +22,7 @@ function LayoutContent({ children }) {
   const pathname = usePathname();
   const hideNavbarAndSidebar = pathname === "/";
   const hideRightContainer = pathname.startsWith("/messages");
+  const hideAll = pathname.startsWith("/api-doc");
 
   if (status === "loading") {
     return <div>Loading...</div>;
@@ -29,14 +30,14 @@ function LayoutContent({ children }) {
 
   return (
     <div className="container">
-      {!hideNavbarAndSidebar && session && (
+      {!hideAll && !hideNavbarAndSidebar && session && (
         <div className="leftcontainer">
           <Navbar />
         </div>
       )}
 
       <div className="middlecontainer">{children}</div>
-      {!hideNavbarAndSidebar && !hideRightContainer && session && (
+      {!hideAll && !hideNavbarAndSidebar && !hideRightContainer && session && (
         <div className="rightcontainer">
           <Sidebar />
         </div>

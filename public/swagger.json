@@ -1584,7 +1584,6 @@
       }
     }
   },
-
   "/api/messages/unread": {
     "get": {
       "summary": "Get Unread Message Count",

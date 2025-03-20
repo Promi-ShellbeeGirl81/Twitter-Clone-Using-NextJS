@@ -1,0 +1,70 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/follow/route": {
+      "post": {
+        "summary": "Create data",
+        "requestBody": null
+      }
+    },
+    "/api/is-following/route": {
+      "get": {
+        "summary": "Get data"
+      }
+    },
+    "/api/messages/route": {
+      "get": {
+        "summary": "Get data"
+      },
+      "post": {
+        "summary": "Create data",
+        "requestBody": null
+      }
+    },
+    "/api/notifications/route": {
+      "get": {
+        "summary": "Get data"
+      },
+      "post": {
+        "summary": "Create data",
+        "requestBody": null
+      },
+      "put": {
+        "summary": "Update data",
+        "requestBody": null
+      },
+      "delete": {
+        "summary": "Delete data"
+      }
+    },
+    "/api/posts/route": {
+      "get": {
+        "summary": "Get data"
+      },
+      "post": {
+        "summary": "Create data",
+        "requestBody": null
+      }
+    },
+    "/api/socket/route": {
+      "get": {
+        "summary": "Get data"
+      },
+      "post": {
+        "summary": "Create data",
+        "requestBody": null
+      }
+    },
+    "/api/unfollow/route": {
+      "post": {
+        "summary": "Create data",
+        "requestBody": null
+      }
+    },
+    "/api/users/route": {
+      "get": {
+        "summary": "Get data"
+      }
+    }
+  }
+}

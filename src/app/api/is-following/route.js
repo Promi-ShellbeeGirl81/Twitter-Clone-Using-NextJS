@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import User from "@/models/user";
-import { ObjectId } from "mongodb"; // For validating ObjectId
+import { ObjectId } from "mongodb"; 
 
 export async function GET(req) {
   try {
