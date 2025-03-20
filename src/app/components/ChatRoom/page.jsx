@@ -7,6 +7,8 @@ import ChatForm from "@/app/components/ChatForm/page";
 import ChatMessage from "@/app/components/ChatMessage/page";
 import { fetchUserIdByEmail, fetchUserById } from "@/utils/api/userApi";
 import styles from "./page.module.css";
+import { fetchMessages as fetchMessagesWithApi } from "@/utils/api/chatApi";
+import { defaultImage } from "@/app/constants";
 
 export default function ChatRoom({ selectedUser }) {
   const { senderId } = useParams();
@@ -16,11 +18,8 @@ export default function ChatRoom({ selectedUser }) {
   const [userId, setUserId] = useState(null);
   const [users, setUsers] = useState({});
   const [roomId, setRoomId] = useState("");
-  const defaultImage =
-    "https://static.vecteezy.com/system/resources/previews/036/280/650/large_2x/default-avatar-profile-icon-social-media-user-image-gray-avatar-icon-blank-profile-silhouette-illustration-vector.jpg";
   const messagesContainerRef = useRef(null);
 
-  // Get current user's ID based on session email
   useEffect(() => {
     if (!session?.user?.email) return;
     const getUserId = async () => {
@@ -30,62 +29,49 @@ export default function ChatRoom({ selectedUser }) {
     getUserId();
   }, [session?.user?.email]);
 
-  // Set online status
   useEffect(() => {
     if (userId) {
       socket.emit("user_status", { userId, status: "online" });
     }
   }, [userId]);
 
-  // Update receiver when selectedUser changes
   useEffect(() => {
     if (selectedUser) {
       setReceiver(selectedUser);
     }
   }, [selectedUser]);
 
-  // Fetch messages from API and emit seen for messages sent to current user
   const fetchMessages = async () => {
     if (!userId || !receiver?._id) return;
-    try {
-      const res = await fetch(
-        `/api/messages?sender=${userId}&receiver=${receiver._id}`
-      );
-      const data = await res.json();
-      if (res.ok) {
-        const formattedMessages = data.map((msg) => ({
-          ...msg,
-          messageId: msg._id, // use server-generated id
-          createdAt: new Date(msg.createdAt).toISOString(),
-          seenAt: msg.seenAt,
-        }));
-        setMessages(formattedMessages);
 
-        // For every message sent to the current user that hasn't been seen, emit "message_seen"
-        formattedMessages.forEach((msg) => {
-          if (msg.receiver === userId && !msg.seenAt) {
-            const room = [userId, receiver._id].sort().join("_");
-            console.log(`Emitting message_seen for message ${msg.messageId}`);
-            socket.emit("message_seen", {
-              room,
-              messageId: msg.messageId,
-              seenBy: userId,
-            });
-          }
-        });
-      }
+    try {
+      const formattedMessages = await fetchMessagesWithApi(
+        userId,
+        receiver._id
+      );
+      setMessages(formattedMessages);
+
+      formattedMessages.forEach((msg) => {
+        if (msg.receiver === userId && !msg.seenAt) {
+          const room = [userId, receiver._id].sort().join("_");
+          console.log(`Emitting message_seen for message ${msg.messageId}`);
+          socket.emit("message_seen", {
+            room,
+            messageId: msg.messageId,
+            seenBy: userId,
+          });
+        }
+      });
     } catch (error) {
       console.error("Error fetching messages:", error);
     }
   };
 
-  // Fetch messages when user or receiver changes
   useEffect(() => {
     if (!userId || !receiver?._id) return;
     fetchMessages();
   }, [userId, receiver?._id]);
 
-  // Set up room and socket event handlers
   useEffect(() => {
     if (!userId || !receiver?._id) return;
     const room = [userId, receiver._id].sort().join("_");
@@ -102,7 +88,6 @@ export default function ChatRoom({ selectedUser }) {
       socket.on("connect", handleSocketConnect);
     }
 
-    // When a new message arrives, update messages
     const handleIncomingMessage = (data) => {
       const formattedMessage = {
         ...data,
@@ -144,7 +129,9 @@ export default function ChatRoom({ selectedUser }) {
     const handleUserStatusUpdate = ({ userId: updatedUserId, status }) => {
       console.log(`User ${updatedUserId} is now ${status}`);
       if (status === "online" && updatedUserId === receiver?._id) {
-        console.log("Receiver is online, updating last message if it's from the sender...");
+        console.log(
+          "Receiver is online, updating last message if it's from the sender..."
+        );
         setMessages((prev) => {
           if (prev.length === 0) return prev;
           const lastMessage = prev[prev.length - 1];
@@ -154,13 +141,16 @@ export default function ChatRoom({ selectedUser }) {
               ...lastMessage,
               seenAt: new Date().toISOString(),
             };
-            console.log("Updated last message with seenAt:", updated[updated.length - 1]);
+            console.log(
+              "Updated last message with seenAt:",
+              updated[updated.length - 1]
+            );
             return updated;
           }
           return prev;
         });
       }
-    }
+    };
     socket.on("user_status_update", handleUserStatusUpdate);
     return () => {
       socket.off("user_status_update", handleUserStatusUpdate);
@@ -188,7 +178,6 @@ export default function ChatRoom({ selectedUser }) {
     });
   }, [messages]);
 
-  // Handle sending a new message
   const handleSendMessage = async (message) => {
     if (!message || typeof message !== "string" || !message.trim()) {
       console.error("Invalid message:", message);
@@ -230,7 +219,6 @@ export default function ChatRoom({ selectedUser }) {
     return null;
   }, [messages, userId]);
 
-  // Compute the ID of the last message sent by the current user
   const lastSentMessageId = useMemo(() => {
     const sentMessages = messages.filter((msg) => msg.sender === userId);
     if (sentMessages.length) {
@@ -241,12 +229,12 @@ export default function ChatRoom({ selectedUser }) {
     return null;
   }, [messages, userId]);
   useEffect(() => {
-    // Simulate a seen update 5 seconds after messages load
     if (userId && messages.length > 0) {
       const timer = setTimeout(() => {
         setMessages((prev) => {
-          const lastIndex = prev.reduce((last, msg, index) => 
-            msg.sender === userId ? index : last, -1
+          const lastIndex = prev.reduce(
+            (last, msg, index) => (msg.sender === userId ? index : last),
+            -1
           );
           if (lastIndex !== -1 && !prev[lastIndex].seenAt) {
             const updated = [...prev];
@@ -254,7 +242,10 @@ export default function ChatRoom({ selectedUser }) {
               ...updated[lastIndex],
               seenAt: new Date().toISOString(),
             };
-            console.log("Test update: last sent message updated with seenAt:", updated[lastIndex]);
+            console.log(
+              "Test update: last sent message updated with seenAt:",
+              updated[lastIndex]
+            );
             return updated;
           }
           return prev;
@@ -263,7 +254,6 @@ export default function ChatRoom({ selectedUser }) {
       return () => clearTimeout(timer);
     }
   }, [userId, messages]);
-  
 
   return (
     <div className={styles.container}>
@@ -285,7 +275,10 @@ export default function ChatRoom({ selectedUser }) {
           messages
             .filter((msg) => msg.sender !== "system")
             .map((msg, index) => (
-              <div key={msg.messageId || index} className={styles.messageWrapper}>
+              <div
+                key={msg.messageId || index}
+                className={styles.messageWrapper}
+              >
                 <ChatMessage
                   sender={users[msg.sender] || msg.sender}
                   message={msg.messageContent}

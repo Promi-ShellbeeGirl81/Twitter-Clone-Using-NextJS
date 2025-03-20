@@ -7,43 +7,56 @@ const ChatMessage = ({
   message,
   isOwnMessage,
   isSystemMessage,
-  seen, // optional prop
+  seen,
   timestamp,
   seenAt,
   isOnline,
   isLastSentMessage,
 }) => {
-  // effectiveSeen is true if seenAt exists (or if seen is explicitly passed)
   const effectiveSeen = seen !== undefined ? seen : Boolean(seenAt);
-  console.log("Rendering message:", { sender, isOwnMessage, isLastSentMessage, effectiveSeen, seenAt });
+  console.log("Rendering message:", {
+    sender,
+    isOwnMessage,
+    isLastSentMessage,
+    effectiveSeen,
+    seenAt,
+  });
 
   return (
     <div
       className={`
         ${styles.messageContainer} 
         ${isOwnMessage ? styles.columnContainer : ""} 
-        ${isSystemMessage 
-            ? styles.messageSystem 
-            : isOwnMessage 
-              ? styles.messageOwn 
-              : styles.messageOther}
+        ${
+          isSystemMessage
+            ? styles.messageSystem
+            : isOwnMessage
+            ? styles.messageOwn
+            : styles.messageOther
+        }
       `}
     >
       <div
         className={`
           ${styles.messageBox} 
-          ${isSystemMessage 
-              ? "" 
-              : isOwnMessage 
-                ? styles.messageOwnBox 
-                : styles.messageOtherBox}
+          ${
+            isSystemMessage
+              ? ""
+              : isOwnMessage
+              ? styles.messageOwnBox
+              : styles.messageOtherBox
+          }
         `}
       >
         {!isSystemMessage && (
           <div className={styles.messageHeader}>
             <span className={styles.sender}>{sender}</span>
             {!isOwnMessage && (
-              <span className={`${styles.onlineStatus} ${isOnline ? styles.online : ""}`}>
+              <span
+                className={`${styles.onlineStatus} ${
+                  isOnline ? styles.online : ""
+                }`}
+              >
                 ●
               </span>
             )}
@@ -63,11 +76,19 @@ const ChatMessage = ({
           </span>
           {isOwnMessage && !isLastSentMessage && (
             <div className={styles.messageStatus}>
-              <span className={`${styles.seenStatus} ${effectiveSeen ? styles.seen : ""}`}>
+              <span
+                className={`${styles.seenStatus} ${
+                  effectiveSeen ? styles.seen : ""
+                }`}
+              >
                 {effectiveSeen ? (
                   <>
-                    <span className={`${styles.checkmark} ${styles.first}`}>✓</span>
-                    <span className={`${styles.checkmark} ${styles.second}`}>✓</span>
+                    <span className={`${styles.checkmark} ${styles.first}`}>
+                      ✓
+                    </span>
+                    <span className={`${styles.checkmark} ${styles.second}`}>
+                      ✓
+                    </span>
                   </>
                 ) : (
                   <span className={styles.checkmark}>✓</span>

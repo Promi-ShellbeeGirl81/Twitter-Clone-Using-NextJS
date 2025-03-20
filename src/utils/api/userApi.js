@@ -1,5 +1,16 @@
 import { getSession } from "next-auth/react";
 
+export const fetchUsers = async () => {
+  try {
+    const res = await fetch("/api/users");
+    if (!res.ok) throw new Error(`Failed to fetch users: ${res.status}`);
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+};
+
 export const fetchSessionUserPosts = async () => {
   try {
     const session = await getSession();

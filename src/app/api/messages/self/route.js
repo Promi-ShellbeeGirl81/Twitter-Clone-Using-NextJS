@@ -12,7 +12,6 @@ export async function GET(req) {
       );
     }
 
-    // Check if the user has sent a message to themselves
     const hasSelfMessage = await Message.exists({
       sender: userId,
       receiver: userId,

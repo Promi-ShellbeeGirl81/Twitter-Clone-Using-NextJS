@@ -5,32 +5,17 @@
   background-color: #000;
   color: #fff;
   height: 100vh;
-  border: 1px solid rgba(255,255,255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 12px;
   gap: 80px;
 }
-
-@media (max-width: 768px) {
-  .container {
-    width: 100%;
-    padding: 0;
-    gap: 0;
-  }
-  .sidebar {
-    display: none;
-  }
-  .chatContainer {
-    width: 100%;
-  }
-}
-
-.headContainer{
+.headContainer {
   display: flex;
   gap: 490px;
   margin-top: 10px;
 }
 
-.icon{
+.icon {
   display: flex;
   gap: 18px;
 }
@@ -109,7 +94,7 @@
 }
 
 .userItem:hover {
-  background-color: rgba(255,255,255, 0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .userItem img {
@@ -163,7 +148,7 @@
   transition: border-color 0.3s;
   display: flex;
   gap: 5px;
-  align-items: center; 
+  align-items: center;
 }
 
 .searchBox {
@@ -184,7 +169,7 @@
 }
 
 .searchContainer svg {
-  pointer-events: none; 
+  pointer-events: none;
 }
 
 .arrowIcon {
@@ -197,10 +182,24 @@
   right: 0;
   width: 12px;
   height: 12px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   border-radius: 50%;
   border: 2px solid white;
 }
 .boldText {
   font-weight: bold !important;
+}
+
+@media (max-width: 768px) {
+  .container {
+    width: 100%;
+    padding: 0;
+    gap: 0;
+  }
+  .sidebar {
+    display: none;
+  }
+  .chatContainer {
+    width: 100%;
+  }
 }
