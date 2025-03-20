@@ -1,28 +1,10 @@
-import Message from "@/models/message";
+import express from "express";
+import { MessageSelfController } from "@/controllers/messageControllers/messageController";
 
-export async function GET(req) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const userId = searchParams.get("userId");
+const router = express.Router();
 
-    if (!userId) {
-      return new Response(
-        JSON.stringify({ message: "Missing required parameter: userId" }),
-        { status: 400 }
-      );
-    }
+router.get("/messages", MessageSelfController.getMessages);
+router.post("/messages/seen", MessageSelfController.markMessageAsSeen);
+router.get("/messages/self-check", MessageSelfController.checkSelfMessage);
 
-    const hasSelfMessage = await Message.exists({
-      sender: userId,
-      receiver: userId,
-    });
-
-    return new Response(JSON.stringify(hasSelfMessage), { status: 200 });
-  } catch (error) {
-    console.error("Error checking self-messages:", error);
-    return new Response(
-      JSON.stringify({ message: "Server error", error: error.message }),
-      { status: 500 }
-    );
-  }
-}
+export default router;

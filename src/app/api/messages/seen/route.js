@@ -1,47 +1,9 @@
-import mongoose from "mongoose";
-import Message from "@/models/message";
+import express from "express";
+import { MessageSeenController } from "@/controllers/messageControllers/messageController";
 
-export async function POST(req) {
-  try {
-    const { messageId, seenBy } = await req.json();
+const router = express.Router();
 
-    if (!messageId || !seenBy) {
-      console.error("Missing required fields:", { messageId, seenBy });
-      return new Response(
-        JSON.stringify({ message: "Missing required fields" }),
-        { status: 400 }
-      );
-    }
+router.get("/messages", MessageSeenController.getMessages);
+router.post("/messages/seen", MessageSeenController.markMessageAsSeen);
 
-    if (!mongoose.Types.ObjectId.isValid(messageId)) {
-      console.error("Invalid messageId:", messageId);
-      return new Response(
-        JSON.stringify({ message: "Invalid messageId format" }),
-        { status: 400 }
-      );
-    }
-
-    const objectId = new mongoose.Types.ObjectId(messageId);
-
-    const updatedMessage = await Message.findByIdAndUpdate(
-      objectId,
-      { seenAt: new Date(), seenBy },
-      { new: true }
-    ).select("sender receiver messageContent messageType seenAt seenBy");
-
-    if (!updatedMessage) {
-      console.error("Message not found:", messageId);
-      return new Response(JSON.stringify({ message: "Message not found" }), {
-        status: 404,
-      });
-    }
-
-    return new Response(JSON.stringify(updatedMessage), { status: 200 });
-  } catch (error) {
-    console.error("Error updating message seen status:", error);
-    return new Response(
-      JSON.stringify({ message: "Server error", error: error.message }),
-      { status: 500 }
-    );
-  }
-}
+export default router;
