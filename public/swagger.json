@@ -409,7 +409,6 @@
         }
       }
     },
-
     "/api/users": {
       "get": {
         "summary": "Get all users",
@@ -930,7 +929,6 @@
         }
       }
     },
-
     "/api/posts/{postId}": {
       "get": {
         "summary": "Get Post and Comments by Post ID",
@@ -1038,86 +1036,86 @@
           }
         }
       }
-    }
-  },
-  "/api/posts/{postId}/like": {
-    "get": {
-      "summary": "Toggle Like on Post",
-      "description": "Toggles the like status on a post for a specific user. Returns a 404 error if the post or user is not found, or a 500 error for server issues.",
-      "parameters": [
-        {
-          "name": "postId",
-          "in": "path",
-          "required": true,
-          "description": "The ID of the post to like or unlike.",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "requestBody": {
-        "required": true,
-        "content": {
-          "application/json": {
+    },
+    "/api/posts/{postId}/like": {
+      "get": {
+        "summary": "Toggle Like on Post",
+        "description": "Toggles the like status on a post for a specific user. Returns a 404 error if the post or user is not found, or a 500 error for server issues.",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post to like or unlike.",
             "schema": {
-              "type": "object",
-              "properties": {
-                "userId": {
-                  "type": "string",
-                  "description": "The ID of the user who is liking or unliking the post."
-                }
-              }
+              "type": "string"
             }
           }
-        }
-      },
-      "responses": {
-        "200": {
-          "description": "Successfully toggled like on the post",
+        ],
+        "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "type": "object",
                 "properties": {
-                  "postId": {
+                  "userId": {
                     "type": "string",
-                    "description": "The ID of the post"
-                  },
-                  "likeCount": {
-                    "type": "integer",
-                    "description": "The updated number of likes on the post"
+                    "description": "The ID of the user who is liking or unliking the post."
                   }
                 }
               }
             }
           }
         },
-        "404": {
-          "description": "Post or User not found",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Post or User not found"
+        "responses": {
+          "200": {
+            "description": "Successfully toggled like on the post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postId": {
+                      "type": "string",
+                      "description": "The ID of the post"
+                    },
+                    "likeCount": {
+                      "type": "integer",
+                      "description": "The updated number of likes on the post"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "500": {
-          "description": "Internal Server Error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Internal server error"
+          },
+          "404": {
+            "description": "Post or User not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post or User not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
                   }
                 }
               }
@@ -1125,64 +1123,64 @@
           }
         }
       }
-    }
-  },
-  "/api/posts/{postId}/comment": {
-    "get": {
-      "summary": "Get Post by ID with Comments",
-      "description": "Fetch a specific post by its ID along with its associated comments. Returns a 404 error if the post is not found, or a 500 error for server issues.",
-      "parameters": [
-        {
-          "name": "postId",
-          "in": "path",
-          "required": true,
-          "description": "The ID of the post to fetch.",
-          "schema": {
-            "type": "string"
+    },
+    "/api/posts/{postId}/comment": {
+      "get": {
+        "summary": "Get Post by ID with Comments",
+        "description": "Fetch a specific post by its ID along with its associated comments. Returns a 404 error if the post is not found, or a 500 error for server issues.",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the post to fetch.",
+            "schema": {
+              "type": "string"
+            }
           }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Successfully fetched post and comments",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "post": {
-                    "type": "object",
-                    "properties": {
-                      "postId": {
-                        "type": "string",
-                        "description": "The ID of the post"
-                      },
-                      "postText": {
-                        "type": "string",
-                        "description": "The content of the post"
-                      },
-                      "userId": {
-                        "type": "string",
-                        "description": "The ID of the user who created the post"
-                      }
-                    }
-                  },
-                  "comments": {
-                    "type": "array",
-                    "items": {
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched post and comments",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "post": {
                       "type": "object",
                       "properties": {
-                        "commentId": {
+                        "postId": {
                           "type": "string",
-                          "description": "The ID of the comment"
+                          "description": "The ID of the post"
                         },
-                        "commentText": {
+                        "postText": {
                           "type": "string",
-                          "description": "The content of the comment"
+                          "description": "The content of the post"
                         },
                         "userId": {
                           "type": "string",
-                          "description": "The ID of the user who made the comment"
+                          "description": "The ID of the user who created the post"
+                        }
+                      }
+                    },
+                    "comments": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "commentId": {
+                            "type": "string",
+                            "description": "The ID of the comment"
+                          },
+                          "commentText": {
+                            "type": "string",
+                            "description": "The content of the comment"
+                          },
+                          "userId": {
+                            "type": "string",
+                            "description": "The ID of the user who made the comment"
+                          }
                         }
                       }
                     }
@@ -1190,34 +1188,34 @@
                 }
               }
             }
-          }
-        },
-        "404": {
-          "description": "Post not found",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Post not found"
+          },
+          "404": {
+            "description": "Post not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Post not found"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "500": {
-          "description": "Internal Server Error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Internal server error"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
                   }
                 }
               }
@@ -1225,204 +1223,350 @@
           }
         }
       }
-    }
-  },
-  "/api/notifications": {
-    "get": {
-      "summary": "Get notifications"
     },
-    "post": {
-      "summary": "Create notifications"
+    "/api/notifications": {
+      "get": {
+        "summary": "Get notifications",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "message": { "type": "string" },
+                      "createdAt": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create notifications",
+        "responses": {
+          "201": {
+            "description": "Notification created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "message": { "type": "string" },
+                    "createdAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update notifications",
+        "responses": {
+          "200": {
+            "description": "Notification updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "message": { "type": "string" },
+                    "updatedAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    "put": {
-      "summary": "Update notifications"
-    }
-  },
-  "/api/socket": {
-    "get": {
-      "summary": "Get socket"
+    "/api/socket": {
+      "get": {
+        "summary": "Get socket",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved socket",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "socketId": { "type": "string" },
+                    "status": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create socket",
+        "responses": {
+          "201": {
+            "description": "Socket created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "socketId": { "type": "string" },
+                    "status": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    "post": {
-      "summary": "Create socket"
-    }
-  },
-  "/api/messages": {
-    "get": {
-      "summary": "Get messages"
+    "/api/messages": {
+      "get": {
+        "summary": "Get messages",
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved messages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "content": { "type": "string" },
+                      "createdAt": { "type": "string", "format": "date-time" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create messages",
+        "responses": {
+          "201": {
+            "description": "Message created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "content": { "type": "string" },
+                    "createdAt": { "type": "string", "format": "date-time" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     },
-    "post": {
-      "summary": "Create messages"
-    }
-  },
-  "/api/messages/{senderId}/{receiverId}": {
-    "get": {
-      "summary": "Get messages between two users",
-      "description": "Fetches the most recent message between the specified sender and receiver. Returns a 404 error if no message is found, or a 500 error for server issues.",
-      "parameters": [
-        {
-          "name": "senderId",
-          "in": "path",
-          "required": true,
-          "description": "The ID of the sender.",
-          "schema": {
-            "type": "string"
+    "/api/messages/{senderId}/{receiverId}": {
+      "get": {
+        "summary": "Get messages between two users",
+        "description": "Fetches the most recent message between the specified sender and receiver. Returns a 404 error if no message is found, or a 500 error for server issues.",
+        "parameters": [
+          {
+            "name": "senderId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the sender.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "receiverId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the receiver.",
+            "schema": {
+              "type": "string"
+            }
           }
-        },
-        {
-          "name": "receiverId",
-          "in": "path",
-          "required": true,
-          "description": "The ID of the receiver.",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Successfully fetched the message",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "sender": {
-                    "type": "string",
-                    "description": "Sender's ID"
-                  },
-                  "receiver": {
-                    "type": "string",
-                    "description": "Receiver's ID"
-                  },
-                  "message": {
-                    "type": "string",
-                    "description": "The content of the message"
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "The time when the message was created"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched the message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sender": {
+                      "type": "string",
+                      "description": "Sender's ID"
+                    },
+                    "receiver": {
+                      "type": "string",
+                      "description": "Receiver's ID"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "The content of the message"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The time when the message was created"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "404": {
-          "description": "No existing message found between the two users",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "No existing message found"
+          },
+          "404": {
+            "description": "No existing message found between the two users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No existing message found"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "500": {
-          "description": "Internal Server Error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Internal server error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "/api/messages/last": {
-    "get": {
-      "summary": "Get the most recent message between two users",
-      "description": "Fetches the most recent message between the specified sender and receiver. Returns a 404 error if no message is found, or a 500 error for server issues.",
-      "parameters": [
-        {
-          "name": "senderId",
-          "in": "path",
-          "required": true,
-          "description": "The ID of the sender.",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "receiverId",
-          "in": "path",
-          "required": true,
-          "description": "The ID of the receiver.",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Successfully fetched the last message",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "sender": {
-                    "type": "string",
-                    "description": "Sender's ID"
-                  },
-                  "receiver": {
-                    "type": "string",
-                    "description": "Receiver's ID"
-                  },
-                  "message": {
-                    "type": "string",
-                    "description": "The content of the message"
-                  },
-                  "createdAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "The time when the message was created"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "404": {
-          "description": "No existing message found between the two users",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "No existing message found"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "Internal Server Error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Internal server error"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
                   }
                 }
               }
@@ -1430,151 +1574,88 @@
           }
         }
       }
-    }
-  },
-  "/api/messages/seen": {
-    "post": {
-      "summary": "Mark a message as seen",
-      "description": "Marks a message as 'seen' by a specific user. Returns a 404 error if the message is not found, or a 500 error for server issues.",
-      "parameters": [
-        {
-          "name": "messageId",
-          "in": "body",
-          "required": true,
-          "description": "The ID of the message to mark as seen.",
-          "schema": {
-            "type": "string"
+    },
+    "/api/messages/last": {
+      "get": {
+        "summary": "Get the most recent message between two users",
+        "description": "Fetches the most recent message between the specified sender and receiver. Returns a 404 error if no message is found, or a 500 error for server issues.",
+        "parameters": [
+          {
+            "name": "senderId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the sender.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "receiverId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the receiver.",
+            "schema": {
+              "type": "string"
+            }
           }
-        },
-        {
-          "name": "seenBy",
-          "in": "body",
-          "required": true,
-          "description": "The ID of the user marking the message as seen.",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Successfully marked the message as seen",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "messageId": {
-                    "type": "string",
-                    "description": "The ID of the message"
-                  },
-                  "seenBy": {
-                    "type": "string",
-                    "description": "User ID who marked the message as seen"
-                  },
-                  "seenAt": {
-                    "type": "string",
-                    "format": "date-time",
-                    "description": "Timestamp when the message was marked as seen"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched the last message",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sender": {
+                      "type": "string",
+                      "description": "Sender's ID"
+                    },
+                    "receiver": {
+                      "type": "string",
+                      "description": "Receiver's ID"
+                    },
+                    "message": {
+                      "type": "string",
+                      "description": "The content of the message"
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "The time when the message was created"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "404": {
-          "description": "Message not found",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Message not found"
+          },
+          "404": {
+            "description": "No existing message found between the two users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "No existing message found"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "500": {
-          "description": "Internal Server Error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Internal server error"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "/api/messages/self": {
-    "get": {
-      "summary": "Check if a user has sent a message to themselves",
-      "description": "Checks if a user has ever sent a message to themselves. Returns a 400 error if the user ID is missing or a 500 error for server issues.",
-      "parameters": [
-        {
-          "name": "userId",
-          "in": "path",
-          "required": true,
-          "description": "The ID of the user to check for self-messages.",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Successfully checked self-message status",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "hasSelfMessage": {
-                    "type": "boolean",
-                    "description": "Whether the user has sent a message to themselves"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "400": {
-          "description": "Missing required parameter: userId",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Missing required parameter: userId"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "500": {
-          "description": "Internal Server Error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Internal server error"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
                   }
                 }
               }
@@ -1582,70 +1663,84 @@
           }
         }
       }
-    }
-  },
-  "/api/messages/unread": {
-    "get": {
-      "summary": "Get Unread Message Count",
-      "description": "Fetch the count of unread messages for a specific user. The count is based on the userId and messages that have a null 'seenAt' field.",
-      "parameters": [
-        {
-          "name": "userId",
-          "in": "query",
-          "required": true,
-          "description": "The ID of the user to get unread message count for.",
-          "schema": {
-            "type": "string"
+    },
+    "/api/messages/seen": {
+      "post": {
+        "summary": "Mark a message as seen",
+        "description": "Marks a message as 'seen' by a specific user. Returns a 404 error if the message is not found, or a 500 error for server issues.",
+        "parameters": [
+          {
+            "name": "messageId",
+            "in": "body",
+            "required": true,
+            "description": "The ID of the message to mark as seen.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "seenBy",
+            "in": "body",
+            "required": true,
+            "description": "The ID of the user marking the message as seen.",
+            "schema": {
+              "type": "string"
+            }
           }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Successfully fetched the unread message count",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "count": {
-                    "type": "integer",
-                    "description": "The number of unread messages"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully marked the message as seen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "messageId": {
+                      "type": "string",
+                      "description": "The ID of the message"
+                    },
+                    "seenBy": {
+                      "type": "string",
+                      "description": "User ID who marked the message as seen"
+                    },
+                    "seenAt": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Timestamp when the message was marked as seen"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "400": {
-          "description": "Missing userId parameter",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Missing userId"
+          },
+          "404": {
+            "description": "Message not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Message not found"
+                    }
                   }
                 }
               }
             }
-          }
-        },
-        "500": {
-          "description": "Internal server error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Server error"
-                  },
-                  "error": {
-                    "type": "string",
-                    "example": "Error message"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
                   }
                 }
               }
@@ -1653,74 +1748,212 @@
           }
         }
       }
-    }
-  },
-  "/api/messages/with-session": {
-    "get": {
-      "summary": "Check for Messages Between Two Users",
-      "description": "Check if there are messages between a user and another user identified by sessionId. Returns a boolean indicating the existence of messages.",
-      "parameters": [
-        {
-          "name": "userId",
-          "in": "query",
-          "required": true,
-          "description": "The ID of the user checking for messages.",
-          "schema": {
-            "type": "string"
-          }
-        },
-        {
-          "name": "sessionId",
-          "in": "query",
-          "required": true,
-          "description": "The ID of the session user to check for messages.",
-          "schema": {
-            "type": "string"
-          }
-        }
-      ],
-      "responses": {
-        "200": {
-          "description": "Successfully checked if there are messages between the two users",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "boolean",
-                "description": "True if messages exist between the users, otherwise false."
-              }
+    },
+    "/api/messages/self": {
+      "get": {
+        "summary": "Check if a user has sent a message to themselves",
+        "description": "Checks if a user has ever sent a message to themselves. Returns a 400 error if the user ID is missing or a 500 error for server issues.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "description": "The ID of the user to check for self-messages.",
+            "schema": {
+              "type": "string"
             }
           }
-        },
-        "400": {
-          "description": "Missing required parameters (userId or sessionId)",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Missing required parameters: userId and sessionId"
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully checked self-message status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hasSelfMessage": {
+                      "type": "boolean",
+                      "description": "Whether the user has sent a message to themselves"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameter: userId",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Missing required parameter: userId"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Internal server error"
+                    }
                   }
                 }
               }
             }
           }
-        },
-        "500": {
-          "description": "Internal server error",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "message": {
-                    "type": "string",
-                    "example": "Server error"
-                  },
-                  "error": {
-                    "type": "string",
-                    "example": "Error message"
+        }
+      }
+    },
+    "/api/messages/unread": {
+      "get": {
+        "summary": "Get Unread Message Count",
+        "description": "Fetch the count of unread messages for a specific user. The count is based on the userId and messages that have a null 'seenAt' field.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "description": "The ID of the user to get unread message count for.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully fetched the unread message count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "count": {
+                      "type": "integer",
+                      "description": "The number of unread messages"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing userId parameter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Missing userId"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Server error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error message"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/messages/with-session": {
+      "get": {
+        "summary": "Check for Messages Between Two Users",
+        "description": "Check if there are messages between a user and another user identified by sessionId. Returns a boolean indicating the existence of messages.",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "query",
+            "required": true,
+            "description": "The ID of the user checking for messages.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "query",
+            "required": true,
+            "description": "The ID of the session user to check for messages.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully checked if there are messages between the two users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "boolean",
+                  "description": "True if messages exist between the users, otherwise false."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters (userId or sessionId)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Missing required parameters: userId and sessionId"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Server error"
+                    },
+                    "error": {
+                      "type": "string",
+                      "example": "Error message"
+                    }
                   }
                 }
               }
